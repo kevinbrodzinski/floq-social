@@ -21,13 +21,18 @@ jobs:
       - run: echo "$PROFILE_SHA256  vm-lab/profile.json" | sha256sum -c -
       - name: Node RGU pre-conformance
         run: |
-          PROFILE=vm-lab/profile.json PORT=18081 node vm-lab/node-rgu.js > node-rgu.log 2>&1 &
+          node --check vm-lab/node-rgu.js
+          PROFILE=vm-lab/profile.json PORT=38181 node vm-lab/node-rgu.js > node-rgu.log 2>&1 &
           echo $! > rgu.pid
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:18081/healthz >/dev/null && break; sleep 0.2; done
-          python vm-lab/conformance.py --base http://127.0.0.1:18081 --subject target-a-accelerator-01 --profile vm-lab/profile.json --out pre-a.json
-          curl -sf http://127.0.0.1:18081/rgi/v1/certification-candidates/target-a-accelerator-01 > candidate-a.json
+          sleep 1
+          cat node-rgu.log || true
+          kill -0 $(cat rgu.pid)
+          curl -sf http://127.0.0.1:38181/healthz
+          python vm-lab/conformance.py --base http://127.0.0.1:38181 --subject target-a-accelerator-01 --profile vm-lab/profile.json --out pre-a.json
+          curl -sf http://127.0.0.1:38181/rgi/v1/certification-candidates/target-a-accelerator-01 > candidate-a.json
           kill $(cat rgu.pid)
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: rgu-a-pre
           path: |
@@ -98,10 +103,13 @@ jobs:
         with: {name: independent-evaluator, path: eval}
       - name: Fresh Node post-evaluator verification
         run: |
-          PROFILE=vm-lab/profile.json PORT=18081 node vm-lab/node-rgu.js > node-rgu-post.log 2>&1 &
+          node --check vm-lab/node-rgu.js
+          PROFILE=vm-lab/profile.json PORT=38181 node vm-lab/node-rgu.js > node-rgu-post.log 2>&1 &
           echo $! > rgu.pid
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:18081/healthz >/dev/null && break; sleep 0.2; done
-          python vm-lab/conformance.py --base http://127.0.0.1:18081 --subject target-a-accelerator-01 --profile vm-lab/profile.json --final eval/final-a.json --out post-a.json
+          sleep 1
+          cat node-rgu-post.log || true
+          kill -0 $(cat rgu.pid)
+          python vm-lab/conformance.py --base http://127.0.0.1:38181 --subject target-a-accelerator-01 --profile vm-lab/profile.json --final eval/final-a.json --out post-a.json
           kill $(cat rgu.pid)
       - uses: actions/upload-artifact@v4
         with: {name: rgu-a-post, path: post-a.json}
