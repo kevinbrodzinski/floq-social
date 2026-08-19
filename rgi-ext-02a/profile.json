@@ -1,0 +1,65 @@
+{
+  "schema_version": "rgi-benchmark-profile/1.0",
+  "profile_id": "rgi.ext02a.cpu.vector-source-audit.v1",
+  "version": "1.0.0",
+  "status": "CANDIDATE",
+  "workload": {
+    "id": "rgi.ext02a.native-vector-kernel.v1",
+    "description": "Native vector execution on independently provisioned x64 and arm64 cloud hardware. The workload demonstrates real hardware execution and interface portability only; it does not estimate alpha, beta, or Theta.",
+    "artifact_role": "workload_definition"
+  },
+  "scope": {
+    "subject_type": "compute-node",
+    "subject_scope": "node",
+    "primary_resource": "bs.compute.cpu.capacity",
+    "chart_id": "rgi.ext02a.cpu.vector-concurrency",
+    "measurement_method_id": "bs.method.source_audit.v0.1",
+    "measurement_profile_id": "rgi.ext02a.hardware-source-audit.v1"
+  },
+  "measurement": {
+    "native_quantum": {
+      "unit": "{cpu}",
+      "epsilon": 0.0,
+      "max_quantum": 1.0,
+      "min_nonzero_probes": 1,
+      "min_distinct_states": 2
+    },
+    "channel": {
+      "fpr_max": 0.02,
+      "tpr_min": 0.85,
+      "untouched_verification_required": true
+    }
+  },
+  "assurance": {
+    "preflight_required_checks": [
+      "target_identity",
+      "runtime_identity",
+      "native_vector_execution",
+      "resource_interface"
+    ],
+    "fidelity_vectors": [
+      {
+        "id": "logical_cpu_count",
+        "unit": "{cpu}",
+        "transform": "IDENTITY",
+        "abs_tolerance": 0.0,
+        "rel_tolerance": 0.0
+      }
+    ]
+  },
+  "blind_evaluation": {
+    "criterion": "CLASS_MATCH",
+    "prediction_field": "brodzinski.class.value",
+    "outcome_field": "observed_class"
+  },
+  "reproducibility": {
+    "required_artifact_roles": [
+      "profile",
+      "hardware_identity",
+      "native_vector_result",
+      "brodzinski_state",
+      "environment_lock"
+    ]
+  },
+  "claim_boundary": "Real-hardware interoperability and typed-refusal profile only. A conforming implementation MUST emit UNKNOWN with no Brodzinski Number until a target-specific alpha/beta measurement profile has been separately validated."
+}
