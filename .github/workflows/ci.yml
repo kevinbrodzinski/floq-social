@@ -1,26 +1,72 @@
-name: CI
+name: RGI EXT 02 REAL INFRA PREFLIGHT
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
-  test:
-    runs-on: ubuntu-latest
-
+  apple-metal-preflight:
+    runs-on: macos-14
     steps:
-      # 1. Check out your branch
       - uses: actions/checkout@v4
-
-      # 2. Set up Node and enable the npm cache (locks to package-lock.json)
-      - uses: actions/setup-node@v4
+      - name: Capture host identity
+        run: |
+          mkdir -p evidence
+          uname -a | tee evidence/uname.txt
+          sw_vers | tee evidence/sw_vers.txt
+          sysctl -n machdep.cpu.brand_string | tee evidence/cpu_brand.txt || true
+          sysctl -n hw.memsize | tee evidence/hw_memsize.txt
+          system_profiler SPHardwareDataType SPDisplaysDataType > evidence/system_profiler.txt
+      - name: Compile and run real Metal probe
+        run: |
+          xcrun swiftc -framework Metal rgi-ext-02/metal_probe.swift -o evidence/metal_probe
+          evidence/metal_probe > evidence/APPLE_METAL_PREFLIGHT.json
+          cat evidence/APPLE_METAL_PREFLIGHT.json
+      - uses: actions/upload-artifact@v4
         with:
-          node-version: 22          # updated to match local development environment
-          cache: npm                # 👉  switched from 'pnpm' to 'npm'
+          name: ext02-apple-metal-preflight
+          path: evidence
 
-      # 3. Install deps from package-lock.json (fail if it’s out of sync)
-      - run: npm ci --legacy-peer-deps
+  linux-cgroup-preflight:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Capture host and cgroup identity
+        run: |
+          mkdir -p evidence
+          uname -a | tee evidence/uname.txt
+          lscpu | tee evidence/lscpu.txt
+          mount | grep cgroup | tee evidence/cgroup_mounts.txt || true
+          cat /proc/meminfo > evidence/meminfo.txt
+      - name: Probe real cgroup-v2 memory controller
+        run: |
+          python rgi-ext-02/linux_cgroup_probe.py > evidence/LINUX_CGROUP_PREFLIGHT.json
+          cat evidence/LINUX_CGROUP_PREFLIGHT.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ext02-linux-cgroup-preflight
+          path: evidence
 
-      # 4. Build the app / library
-      - run: npm run build
-
-      # 5. Run Vitest with coverage (works even without a script entry)
-      - run: npx vitest run --coverage
+  neutral-preflight-reducer:
+    needs: [apple-metal-preflight, linux-cgroup-preflight]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: ext02-apple-metal-preflight
+          path: apple
+      - uses: actions/download-artifact@v4
+        with:
+          name: ext02-linux-cgroup-preflight
+          path: linux
+      - name: Apply frozen no-Theta preflight promotion rule
+        run: python rgi-ext-02/preflight_reduce.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rgi-ext-02-preflight-receipt
+          path: |
+            RGI_EXT_02_PREFLIGHT_RECEIPT.json
+            RGI_EXT_02_PREFLIGHT_REPORT.md
