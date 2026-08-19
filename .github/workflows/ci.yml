@@ -10,13 +10,13 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Capture x64 hardware identity and execute AVX-512 kernel
+      - name: Capture x64 hardware identity and execute native AVX2/FMA kernel
         run: |
           mkdir -p evidence
           uname -a | tee evidence/uname.txt
           lscpu | tee evidence/lscpu.txt
           cat /proc/cpuinfo > evidence/cpuinfo.txt
-          gcc -O3 -mavx512f -mfma rgi-ext-02a/vector_x64.c -o evidence/vector_x64
+          gcc -O3 -mavx2 -mfma rgi-ext-02a/vector_x64.c -o evidence/vector_x64
           evidence/vector_x64 > evidence/vector.json
           cat evidence/vector.json
       - name: Start independent Python RGU and run black-box RGI checks
