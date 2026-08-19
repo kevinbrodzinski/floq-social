@@ -1,0 +1,12 @@
+{
+  "assurance": {"fidelity_vectors": [{"abs_tolerance": 0.0,"id": "hbm_capacity","rel_tolerance": 0.0,"transform": "IDENTITY","unit": "By"}],"preflight_required_checks": ["target_identity","runtime_identity","resource_interface"]},
+  "blind_evaluation": {"criterion": "CLASS_MATCH","outcome_field": "observed_class","prediction_field": "brodzinski.class.value"},
+  "claim_boundary": "Reference interoperability profile only. It tests whether independent RGI implementations carry identical certification semantics; it is not a claim about any commercial accelerator.",
+  "measurement": {"channel": {"fpr_max": 0.02,"tpr_min": 0.85,"untouched_verification_required": true},"native_quantum": {"epsilon": 1.0,"max_quantum": 134217728.0,"min_distinct_states": 3,"min_nonzero_probes": 3,"unit": "By"}},
+  "profile_id": "rgi.reference.accelerator.hbm.v1",
+  "reproducibility": {"required_artifact_roles": ["profile","target_manifest","state","adapter_manifest","measurement_config","environment_lock"]},
+  "schema_version": "rgi-benchmark-profile/1.0",
+  "scope": {"chart_id": "rgi.reference.hbm-saturation","measurement_method_id": "bs.method.matched_state.v0.1","measurement_profile_id": "rgi.reference.hbm.matched-state.v1","primary_resource": "bs.compute.memory.hbm.capacity","subject_scope": "device","subject_type": "accelerator"},
+  "status": "CANDIDATE","version": "1.0.0",
+  "workload": {"artifact_role": "workload_definition","description": "Portable reference workload for interoperability testing of an accelerator-like HBM resource boundary. Values are interoperability fixtures, not hardware performance claims.","id": "rgi.workload.reference.hbm-pressure.v1"}
+}
