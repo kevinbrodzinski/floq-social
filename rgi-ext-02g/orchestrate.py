@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-import argparse, hashlib, json, subprocess, sys, time
+import argparse, hashlib, json, shlex, subprocess, time
 from pathlib import Path
 
 
 def call(target, args, allow_refusal=False):
-    r = subprocess.run([target] + args, text=True, capture_output=True)
-    obj = None
+    cmd = shlex.split(target) + args
+    r = subprocess.run(cmd, text=True, capture_output=True)
     try:
         obj = json.loads(r.stdout.strip())
     except Exception:
@@ -19,7 +19,7 @@ def write(path, obj):
     Path(path).write_text(json.dumps(obj, indent=2, sort_keys=True) + '\n')
 
 ap=argparse.ArgumentParser()
-ap.add_argument('--target', required=True, help='Executable implementing the six-command EXT-02G contract')
+ap.add_argument('--target', required=True, help='Command implementing the six-command EXT-02G contract')
 ap.add_argument('--out', default='RGI_EXT_02G_ADMISSION_RECEIPT.json')
 ap.add_argument('--resource-level', type=float, default=0.25)
 a=ap.parse_args()
@@ -29,7 +29,7 @@ rc, ident = call(a.target, ['identity'], allow_refusal=True)
 receipt={
   'trial':'RGI-EXT-02G',
   'stage':'PLUGGABLE_REAL_GPU_EXECUTION_TARGET_ADMISSION',
-  'target_executable':a.target,
+  'target_command':a.target,
   'started_at_ns':started,
   'identity':ident,
   'theta_estimated':False,
