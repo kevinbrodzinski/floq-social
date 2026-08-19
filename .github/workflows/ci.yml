@@ -1,26 +1,44 @@
-name: CI
+name: RGI EXT 02G PLUGGABLE GPU TARGET
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
-  test:
-    runs-on: ubuntu-latest
-
+  carrier-static-and-refusal:
+    runs-on: ubuntu-24.04
     steps:
-      # 1. Check out your branch
       - uses: actions/checkout@v4
-
-      # 2. Set up Node and enable the npm cache (locks to package-lock.json)
-      - uses: actions/setup-node@v4
+      - name: Syntax check
+        run: |
+          python3 -m py_compile rgi-ext-02g/orchestrate.py rgi-ext-02g/gpu_target_nvidia.py rgi-ext-02g/test_refusal.py
+      - name: No-fabrication admission test on non-GPU runner
+        run: python3 rgi-ext-02g/test_refusal.py
+      - name: Preserve typed refusal receipt
+        run: |
+          python3 rgi-ext-02g/orchestrate.py \
+            --target "python3 rgi-ext-02g/gpu_target_nvidia.py" \
+            --out RGI_EXT_02G_CPU_ONLY_REFUSAL_RECEIPT.json
+          cat RGI_EXT_02G_CPU_ONLY_REFUSAL_RECEIPT.json
+      - uses: actions/upload-artifact@v4
         with:
-          node-version: 22          # updated to match local development environment
-          cache: npm                # 👉  switched from 'pnpm' to 'npm'
+          name: rgi-ext-02g-cpu-only-refusal
+          path: RGI_EXT_02G_CPU_ONLY_REFUSAL_RECEIPT.json
 
-      # 3. Install deps from package-lock.json (fail if it’s out of sync)
-      - run: npm ci --legacy-peer-deps
-
-      # 4. Build the app / library
-      - run: npm run build
-
-      # 5. Run Vitest with coverage (works even without a script entry)
-      - run: npx vitest run --coverage
+  independent-contract-review:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify frozen six-command public surface and no scientific estimator code
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          c=Path('rgi-ext-02g/CONTRACT.md').read_text()
+          required=['identity','resource-inventory','native-quantum','run-workload --resource-level <p>','collect-response','seal-raw-outcome']
+          assert all(x in c for x in required)
+          src='\n'.join(Path(p).read_text() for p in ['rgi-ext-02g/orchestrate.py','rgi-ext-02g/gpu_target_nvidia.py'])
+          forbidden=['alpha_estimator','beta_estimator','theta_estimator','brodzinski_classifier','global_action_score']
+          assert not any(x in src for x in forbidden)
+          print('RGI-EXT-02G CONTRACT REVIEW: PASS')
+          PY
