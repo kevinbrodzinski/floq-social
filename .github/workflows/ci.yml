@@ -1,26 +1,137 @@
-name: CI
+name: RGI EXT 02A REAL HARDWARE
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
-  test:
-    runs-on: ubuntu-latest
-
+  x64-real-hardware:
+    runs-on: ubuntu-24.04
     steps:
-      # 1. Check out your branch
       - uses: actions/checkout@v4
-
-      # 2. Set up Node and enable the npm cache (locks to package-lock.json)
-      - uses: actions/setup-node@v4
+      - name: Capture x64 hardware identity and execute AVX-512 kernel
+        run: |
+          mkdir -p evidence
+          uname -a | tee evidence/uname.txt
+          lscpu | tee evidence/lscpu.txt
+          cat /proc/cpuinfo > evidence/cpuinfo.txt
+          gcc -O3 -mavx512f -mfma rgi-ext-02a/vector_x64.c -o evidence/vector_x64
+          evidence/vector_x64 > evidence/vector.json
+          cat evidence/vector.json
+      - name: Start independent Python RGU and run black-box RGI checks
+        run: |
+          PROFILE=rgi-ext-02a/profile.json VECTOR_RESULT=evidence/vector.json PORT=38191 SUBJECT_ID=ext02a-x64-node python rgi-ext-02a/rgu_x64.py > evidence/rgu.log 2>&1 &
+          echo $! > evidence/rgu.pid
+          for i in $(seq 1 80); do curl -sf http://127.0.0.1:38191/healthz >/dev/null && break; sleep 0.2; done
+          python rgi-ext-02a/blackbox_unknown.py --base http://127.0.0.1:38191 --subject ext02a-x64-node --profile rgi-ext-02a/profile.json --arch x86_64 --out evidence/pre-x64.json
+          curl -sf http://127.0.0.1:38191/rgi/v1/states/ext02a-x64-node > evidence/state-x64.json
+          curl -sf http://127.0.0.1:38191/rgi/v1/capabilities > evidence/capabilities-x64.json
+          kill $(cat evidence/rgu.pid)
+      - uses: actions/upload-artifact@v4
         with:
-          node-version: 22          # updated to match local development environment
-          cache: npm                # 👉  switched from 'pnpm' to 'npm'
+          name: ext02a-x64-pre
+          path: evidence
 
-      # 3. Install deps from package-lock.json (fail if it’s out of sync)
-      - run: npm ci --legacy-peer-deps
+  arm64-real-hardware:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Capture arm64 hardware identity and execute NEON kernel
+        run: |
+          mkdir -p evidence
+          uname -a | tee evidence/uname.txt
+          lscpu | tee evidence/lscpu.txt
+          cat /proc/cpuinfo > evidence/cpuinfo.txt
+          gcc -O3 -march=armv8-a+simd rgi-ext-02a/vector_arm64.c -o evidence/vector_arm64
+          evidence/vector_arm64 > evidence/vector.json
+          cat evidence/vector.json
+      - name: Start independent Node RGU and run black-box RGI checks
+        run: |
+          node --version | tee evidence/node-version.txt
+          PROFILE=rgi-ext-02a/profile.json VECTOR_RESULT=evidence/vector.json PORT=38192 SUBJECT_ID=ext02a-arm64-node node rgi-ext-02a/rgu_arm64.mjs > evidence/rgu.log 2>&1 &
+          echo $! > evidence/rgu.pid
+          for i in $(seq 1 80); do curl -sf http://127.0.0.1:38192/healthz >/dev/null && break; sleep 0.2; done
+          python3 rgi-ext-02a/blackbox_unknown.py --base http://127.0.0.1:38192 --subject ext02a-arm64-node --profile rgi-ext-02a/profile.json --arch arm64 --out evidence/pre-arm64.json
+          curl -sf http://127.0.0.1:38192/rgi/v1/states/ext02a-arm64-node > evidence/state-arm64.json
+          curl -sf http://127.0.0.1:38192/rgi/v1/capabilities > evidence/capabilities-arm64.json
+          kill $(cat evidence/rgu.pid)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ext02a-arm64-pre
+          path: evidence
 
-      # 4. Build the app / library
-      - run: npm run build
+  independent-evaluator:
+    needs: [x64-real-hardware, arm64-real-hardware]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.x'}
+      - uses: actions/download-artifact@v4
+        with: {name: ext02a-x64-pre, path: x64}
+      - uses: actions/download-artifact@v4
+        with: {name: ext02a-arm64-pre, path: arm64}
+      - name: Independent Go evaluation and signature
+        run: |
+          go run rgi-ext-02a/evaluator.go x64/pre-x64.json arm64/pre-arm64.json RGI_EXT_02A_EVALUATOR_RECEIPT.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ext02a-independent-evaluator
+          path: RGI_EXT_02A_EVALUATOR_RECEIPT.json
 
-      # 5. Run Vitest with coverage (works even without a script entry)
-      - run: npx vitest run --coverage
+  x64-fresh-reverify:
+    needs: [independent-evaluator]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check cryptography
+      - uses: actions/download-artifact@v4
+        with: {name: ext02a-x64-pre, path: pre}
+      - uses: actions/download-artifact@v4
+        with: {name: ext02a-independent-evaluator, path: eval}
+      - run: python rgi-ext-02a/verify_evaluator.py --receipt eval/RGI_EXT_02A_EVALUATOR_RECEIPT.json --probe pre/pre-x64.json --role x64 --out post-x64.json
+      - uses: actions/upload-artifact@v4
+        with: {name: ext02a-x64-post, path: post-x64.json}
+
+  arm64-fresh-reverify:
+    needs: [independent-evaluator]
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check cryptography
+      - uses: actions/download-artifact@v4
+        with: {name: ext02a-arm64-pre, path: pre}
+      - uses: actions/download-artifact@v4
+        with: {name: ext02a-independent-evaluator, path: eval}
+      - run: python rgi-ext-02a/verify_evaluator.py --receipt eval/RGI_EXT_02A_EVALUATOR_RECEIPT.json --probe pre/pre-arm64.json --role arm64 --out post-arm64.json
+      - uses: actions/upload-artifact@v4
+        with: {name: ext02a-arm64-post, path: post-arm64.json}
+
+  neutral-reducer:
+    needs: [x64-real-hardware, arm64-real-hardware, independent-evaluator, x64-fresh-reverify, arm64-fresh-reverify]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: {name: ext02a-x64-pre, path: pre-x64}
+      - uses: actions/download-artifact@v4
+        with: {name: ext02a-arm64-pre, path: pre-arm64}
+      - uses: actions/download-artifact@v4
+        with: {name: ext02a-independent-evaluator, path: eval}
+      - uses: actions/download-artifact@v4
+        with: {name: ext02a-x64-post, path: post-x64}
+      - uses: actions/download-artifact@v4
+        with: {name: ext02a-arm64-post, path: post-arm64}
+      - run: python rgi-ext-02a/reduce.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rgi-ext-02a-receipt
+          path: |
+            RGI_EXT_02A_RECEIPT.json
+            RGI_EXT_02A_REPORT.md
