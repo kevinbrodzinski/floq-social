@@ -1,26 +1,152 @@
-name: CI
+name: RGI EXT VM LAB 01
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
+env:
+  PROFILE_SHA256: b20b3d74f3faca527f739e8a8fa51e704dd34fe3d4ee8476695cbcb1ecde4afa
+
 jobs:
-  test:
-    runs-on: ubuntu-latest
-
+  rgu-a-pre:
+    runs-on: ubuntu-24.04
     steps:
-      # 1. Check out your branch
       - uses: actions/checkout@v4
-
-      # 2. Set up Node and enable the npm cache (locks to package-lock.json)
       - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check cryptography
+      - run: echo "$PROFILE_SHA256  vm-lab/profile.json" | sha256sum -c -
+      - name: Node RGU pre-conformance
+        run: |
+          PROFILE=vm-lab/profile.json PORT=18081 node vm-lab/node-rgu.js > node-rgu.log 2>&1 &
+          echo $! > rgu.pid
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:18081/healthz >/dev/null && break; sleep 0.2; done
+          python vm-lab/conformance.py --base http://127.0.0.1:18081 --subject target-a-accelerator-01 --profile vm-lab/profile.json --out pre-a.json
+          curl -sf http://127.0.0.1:18081/rgi/v1/certification-candidates/target-a-accelerator-01 > candidate-a.json
+          kill $(cat rgu.pid)
+      - uses: actions/upload-artifact@v4
         with:
-          node-version: 22          # updated to match local development environment
-          cache: npm                # 👉  switched from 'pnpm' to 'npm'
+          name: rgu-a-pre
+          path: |
+            pre-a.json
+            candidate-a.json
+            node-rgu.log
 
-      # 3. Install deps from package-lock.json (fail if it’s out of sync)
-      - run: npm ci --legacy-peer-deps
+  rgu-b-pre:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check cryptography
+      - run: echo "$PROFILE_SHA256  vm-lab/profile.json" | sha256sum -c -
+      - name: Python RGU pre-conformance
+        run: |
+          PROFILE=vm-lab/profile.json PORT=18082 python vm-lab/python-rgu.py > python-rgu.log 2>&1 &
+          echo $! > rgu.pid
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:18082/healthz >/dev/null && break; sleep 0.2; done
+          python vm-lab/conformance.py --base http://127.0.0.1:18082 --subject target-b-accelerator-01 --profile vm-lab/profile.json --out pre-b.json
+          curl -sf http://127.0.0.1:18082/rgi/v1/certification-candidates/target-b-accelerator-01 > candidate-b.json
+          kill $(cat rgu.pid)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rgu-b-pre
+          path: |
+            pre-b.json
+            candidate-b.json
+            python-rgu.log
 
-      # 4. Build the app / library
-      - run: npm run build
+  evaluator:
+    needs: [rgu-a-pre, rgu-b-pre]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.x'}
+      - uses: actions/download-artifact@v4
+        with: {name: rgu-a-pre, path: input-a}
+      - uses: actions/download-artifact@v4
+        with: {name: rgu-b-pre, path: input-b}
+      - name: Go evaluator
+        run: |
+          echo "$PROFILE_SHA256  vm-lab/profile.json" | sha256sum -c -
+          go run vm-lab/evaluator.go --bundle input-a/candidate-a.json --profile vm-lab/profile.json --out final-a.json | tee evaluator-a.log
+          go run vm-lab/evaluator.go --bundle input-b/candidate-b.json --profile vm-lab/profile.json --out final-b.json | tee evaluator-b.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: independent-evaluator
+          path: |
+            final-a.json
+            final-b.json
+            evaluator-a.log
+            evaluator-b.log
 
-      # 5. Run Vitest with coverage (works even without a script entry)
-      - run: npx vitest run --coverage
+  rgu-a-post-fresh:
+    needs: [evaluator]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check cryptography
+      - uses: actions/download-artifact@v4
+        with: {name: independent-evaluator, path: eval}
+      - name: Fresh Node post-evaluator verification
+        run: |
+          PROFILE=vm-lab/profile.json PORT=18081 node vm-lab/node-rgu.js > node-rgu-post.log 2>&1 &
+          echo $! > rgu.pid
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:18081/healthz >/dev/null && break; sleep 0.2; done
+          python vm-lab/conformance.py --base http://127.0.0.1:18081 --subject target-a-accelerator-01 --profile vm-lab/profile.json --final eval/final-a.json --out post-a.json
+          kill $(cat rgu.pid)
+      - uses: actions/upload-artifact@v4
+        with: {name: rgu-a-post, path: post-a.json}
+
+  rgu-b-post-fresh:
+    needs: [evaluator]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check cryptography
+      - uses: actions/download-artifact@v4
+        with: {name: independent-evaluator, path: eval}
+      - name: Fresh Python post-evaluator verification
+        run: |
+          PROFILE=vm-lab/profile.json PORT=18082 python vm-lab/python-rgu.py > python-rgu-post.log 2>&1 &
+          echo $! > rgu.pid
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:18082/healthz >/dev/null && break; sleep 0.2; done
+          python vm-lab/conformance.py --base http://127.0.0.1:18082 --subject target-b-accelerator-01 --profile vm-lab/profile.json --final eval/final-b.json --out post-b.json
+          kill $(cat rgu.pid)
+      - uses: actions/upload-artifact@v4
+        with: {name: rgu-b-post, path: post-b.json}
+
+  neutral-reducer:
+    needs: [rgu-a-pre, rgu-b-pre, evaluator, rgu-a-post-fresh, rgu-b-post-fresh]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - uses: actions/download-artifact@v4
+        with: {name: rgu-a-pre, path: pre-a}
+      - uses: actions/download-artifact@v4
+        with: {name: rgu-b-pre, path: pre-b}
+      - uses: actions/download-artifact@v4
+        with: {name: independent-evaluator, path: eval}
+      - uses: actions/download-artifact@v4
+        with: {name: rgu-a-post, path: post-a}
+      - uses: actions/download-artifact@v4
+        with: {name: rgu-b-post, path: post-b}
+      - run: python vm-lab/reduce.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rgi-ext-vm-lab-01-receipt
+          path: |
+            RGI_EXT_VM_LAB_01_RECEIPT.json
+            RGI_EXT_VM_LAB_01_REPORT.md
