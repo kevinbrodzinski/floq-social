@@ -50,7 +50,7 @@ func main(){
   out:=map[string]any{
     "trial":"RGI-EXT-02A","stage":"REAL_HETEROGENEOUS_HARDWARE_TYPED_REFUSAL","result":result,
     "profile_sha256":x.ProfileSHA,"x64_state_id":stateID(x),"arm64_state_id":stateID(a),"checks":checks,
-    "evaluator":{"implementation":"go-independent-evaluator","go_version":runtime.Version(),"os":runtime.GOOS,"arch":runtime.GOARCH,"uname":uname(),"evaluated_at":time.Now().UTC().Format(time.RFC3339Nano)},
+    "evaluator":map[string]any{"implementation":"go-independent-evaluator","go_version":runtime.Version(),"os":runtime.GOOS,"arch":runtime.GOARCH,"uname":uname(),"evaluated_at":time.Now().UTC().Format(time.RFC3339Nano)},
     "public_key_base64":base64.StdEncoding.EncodeToString(pub),"signature_base64":base64.StdEncoding.EncodeToString(sig),"signed_payload_base64":base64.StdEncoding.EncodeToString([]byte(payload)),
     "claim_boundary":"Demonstrates RGI interoperability and scientifically correct UNKNOWN/refusal semantics on real heterogeneous hosted hardware. It does not certify a numeric Brodzinski Number or real GPU Resource Geometry.",
   }
