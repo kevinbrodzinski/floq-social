@@ -24,13 +24,13 @@ The admissible carrier class is `NVIDIA_RTX_A4000_CC86_16GB_NATIVE_2MIB_CUDA118_
 - `cuda-python==11.8.3`;
 - CUDA 11.8 userspace semantics;
 - NVIDIA Linux driver >= 520.61.05 and < 600.0.0;
-- the frozen seeded 1024x1024 FP32 workload and numerical precision;
-- a zero-pressure compatibility checksum within absolute tolerance 1e-3 of the frozen reference implementation checksum;
+- the already-frozen scientific measurement workload remains seeded FP32 1024x1024 with seed 260819;
+- carrier compatibility is checked separately with the exact EXT-02G.1 admitted compute probe: FP32 `arange` left operand, FP32 constant `1/n` right operand, `n=1024`, checksum `1048574.625 +/- 0.001`;
 - all environmental, thermal, idle-load, p-grid, ordering, repetition, estimator, Theta, class, and blind-outcome rules unchanged.
 
 ## One-shot order
 
-Exactly one new GPU provisioning attempt is authorized under this amendment. The executor must record the fresh UUID, verify the entire equivalence class, native quantum, checksum compatibility, and unchanged idle environmental gates, then seal either `CARRIER_EQUIVALENCE_CERTIFIED` or `GPU_CARRIER_EQUIVALENCE_REFUSED_STOP_NO_MEASUREMENT`.
+Exactly one new GPU provisioning attempt is authorized under this amendment. The executor must record the fresh UUID, verify the entire equivalence class, native quantum, exact admitted-carrier checksum compatibility, and unchanged idle environmental gates, then seal either `CARRIER_EQUIVALENCE_CERTIFIED` or `GPU_CARRIER_EQUIVALENCE_REFUSED_STOP_NO_MEASUREMENT`.
 
 Only `CARRIER_EQUIVALENCE_CERTIFIED` may open the already-frozen 15-level alpha sweep in the same one-shot execution. A failed equivalence preflight terminates the amendment identity with no retry or substitute GPU.
 
