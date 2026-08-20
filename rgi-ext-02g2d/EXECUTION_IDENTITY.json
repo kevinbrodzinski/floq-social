@@ -1,0 +1,44 @@
+{
+  "artifact_type": "RGI_EXT_02G2D_FRESH_MEASUREMENT_EXECUTION_IDENTITY",
+  "experiment_id": "RGI-EXT-02G.2d",
+  "execution_identity": "RGI-EXT-02G.2d-FRESH-MEASUREMENT-001-EXECUTION-001",
+  "fresh_measurement_identity": "RGI-EXT-02G.2c-FRESH-MEASUREMENT-001",
+  "status": "PROSPECTIVELY_BOUND_BEFORE_ONE_SHOT_PROVISIONING",
+  "parent_authorization": {
+    "pr": 12,
+    "head_sha": "4f22b9451a665f6266153a7de9b335018ad6ae3b",
+    "authorization_blob_sha1": "f17a707e16ffd493c01e1caddf5655f598eafc08",
+    "authorization_verifier_blob_sha1": "84519751e82b75813038cc5205a3db86d2b497cc",
+    "authorization_workflow_blob_sha1": "30ff8932a6207d18b1e48e9070a2aef12a7f2ab9",
+    "preflight_workflow_run_id": 32333873662,
+    "preflight_workflow_job_id": 96319534834,
+    "preflight_conclusion": "success",
+    "required_pass_marker": "RGI_EXT_02G2C_FINAL_SOURCE_CONFIG_PREFLIGHT_PASS"
+  },
+  "frozen_lineage": {
+    "measurement_admissibility_sha256": "aa7c9954b21e55943ae6683519ea41fc387b03d46cab9b2aa79570222ca643d2",
+    "carrier_equivalence_amendment_sha256": "04716f93f260ed3ef8e23201ef21775a25ad2c2cd40949e09a93a99d21472ba0",
+    "repair_freeze_blob_sha1": "b9521f4acd9e0c9ead6c1425375efc153e6bdbf8",
+    "repaired_point_worker_blob_sha1": "b0d201e992438dfb7ca8857b9a101b30d088843c",
+    "carrier_equivalence_class_id": "NVIDIA_RTX_A4000_CC86_16GB_NATIVE_2MIB_CUDA118_V1"
+  },
+  "execution_authority": {
+    "provider_create_requests_authorized": 1,
+    "gpu_type_exact": "NVIDIA RTX A4000",
+    "container_image_exact": "runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04",
+    "fresh_carrier_equivalence_preflight_required": true,
+    "scientific_sweep_only_after_equivalence_certification": true,
+    "no_second_pod_substitution": true,
+    "no_outcome_dependent_retry": true,
+    "no_parameter_retuning": true,
+    "no_scientific_design_change": true,
+    "blind_holdout_remains_closed_under_existing_gate": true
+  },
+  "zero_start": {
+    "successor_observations_before_execution": 0,
+    "successor_dataset_must_start_empty": true,
+    "pr10_measurement_reuse_forbidden": true
+  },
+  "scientific_contract": "UNCHANGED_FROM_RGI_EXT_02G2_PLUS_FROZEN_02G2A_CARRIER_EQUIVALENCE_AND_02G2B_SCHEMA_REPAIR",
+  "claim_boundary": "This identity authorizes exactly one fresh carrier provisioning attempt under the already-passed RGI-EXT-02G.2c preflight. It makes no scientific-design change and creates no evidence until the one-shot workflow executes."
+}
