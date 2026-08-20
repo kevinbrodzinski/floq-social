@@ -1,0 +1,33 @@
+name: RGI EXT 02G2 PRIMARY GPU MEASUREMENT
+on:
+  pull_request:
+    types: [synchronize, reopened]
+permissions:
+  contents: read
+jobs:
+  primary-frozen-gpu-measurement:
+    if: github.event.pull_request.head.ref == 'rgi-ext-02g2-native-gpu-measurement-freeze-20260819'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      RUNPOD_API: ${{ secrets.RUNPOD_API }}
+      TARGET_BRANCH: rgi-ext-02g2-native-gpu-measurement-freeze-20260819
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify frozen scientific contract before authorization
+        run: |
+          test "$(sha256sum rgi-ext-02g2/MEASUREMENT_ADMISSIBILITY_FREEZE.json | cut -d' ' -f1)" = "aa7c9954b21e55943ae6683519ea41fc387b03d46cab9b2aa79570222ca643d2"
+          python3 rgi-ext-02g2/verify_freeze.py
+          python3 -m py_compile rgi-ext-02g2/gpu_measurement_common.py rgi-ext-02g2/gpu_measurement_point.py rgi-ext-02g2/measurement_executor.py
+      - name: Execute frozen primary GPU measurement exactly once
+        run: bash rgi-ext-02g2/runpod_measurement_ci.sh
+      - name: Surface terminal state
+        if: always()
+        run: |
+          if [ -f evidence/TERMINAL_RECEIPT.json ]; then jq '{terminal_state,stage,completed_at_ns,receipt_sha256}' evidence/TERMINAL_RECEIPT.json; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rgi-ext-02g2-primary-gpu-measurement
+          path: evidence/
+          if-no-files-found: warn
