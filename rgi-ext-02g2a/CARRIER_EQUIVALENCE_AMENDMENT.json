@@ -65,9 +65,9 @@
         "maximum_exclusive": "600.0.0",
         "rationale": "Driver must support the frozen CUDA 11.8 userspace while excluding a future major-driver family not prospectively assessed."
       },
-      "matmul_shape_exact": [1024, 1024],
-      "input_dtype_exact": "torch.float32",
-      "seed_exact": 260819,
+      "scientific_measurement_matmul_shape_exact": [1024, 1024],
+      "scientific_measurement_input_dtype_exact": "torch.float32",
+      "scientific_measurement_seed_exact": 260819,
       "baseline_warmup_matmuls_exact": 2,
       "baseline_recorded_matmuls_exact": 5,
       "pressure_warmup_matmuls_exact": 2,
@@ -75,7 +75,13 @@
       "pressure_buffer_dtype_exact": "torch.uint8",
       "pressure_fill_exact": 90,
       "pressure_settle_seconds_exact": 2.0,
-      "workload_checksum_rule": "For a zero-pressure compatibility probe using the frozen seeded 1024x1024 FP32 operands, the finite checksum must equal the reference implementation checksum within absolute tolerance 1e-3; the observed checksum is recorded and UUID-independent.",
+      "compatibility_probe_workload_id": "RGI_EXT_02G1_CARRIER_MEMORY_PLUS_MATMUL_V1",
+      "compatibility_probe_matmul_shape_exact": [1024, 1024],
+      "compatibility_probe_dtype_exact": "torch.float32",
+      "compatibility_probe_left_operand_exact": "torch.arange(n*n,dtype=float32).reshape(n,n)",
+      "compatibility_probe_right_operand_exact": "torch.full((n,n),1.0/n,dtype=float32)",
+      "compatibility_probe_checksum_reference": 1048574.625,
+      "workload_checksum_rule": "Run the exact EXT-02G.1 admitted carrier compute probe with n=1024, FP32 arange left operand and FP32 constant 1/n right operand. The checksum c[0,0]+c[-1,-1] must equal 1048574.625 within absolute tolerance 1e-3. UUID is recorded but is not part of this criterion.",
       "workload_checksum_abs_tolerance": 0.001,
       "environmental_gates": "UNCHANGED_FROM_MEASUREMENT_ADMISSIBILITY_FREEZE"
     }
@@ -92,7 +98,7 @@
       "verify native capacity",
       "verify frozen CUDA/container/driver compatibility",
       "verify exact 2 MiB native allocation quantum",
-      "verify frozen zero-pressure workload checksum compatibility",
+      "verify exact EXT-02G.1 carrier workload checksum compatibility",
       "verify unchanged idle environmental gates",
       "seal CARRIER_EQUIVALENCE_CERTIFIED or typed refusal",
       "only after certification authorize the unchanged 15-level alpha sweep"
