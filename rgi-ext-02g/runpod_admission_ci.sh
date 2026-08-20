@@ -16,30 +16,13 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Use RunPod's supported CLI for the basic proxied SSH endpoint. This avoids
-# depending on a public-IP/22 mapping while preserving per-Pod key isolation.
 curl -fsSL https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64 -o "$RUNNER_TEMP/runpodctl"
 chmod +x "$RUNNER_TEMP/runpodctl"
+mkdir -p "$HOME/.runpod"
+touch "$HOME/.runpod/.runpod.yaml"
 "$RUNNER_TEMP/runpodctl" config --apiKey "$RUNPOD_API" >/dev/null
 
-jq -n --arg ssh "$SSH_PUB" '{
-  name: "rgi-ext-02g1-one-shot",
-  cloudType: "SECURE",
-  computeType: "GPU",
-  gpuCount: 1,
-  gpuTypeIds: ["NVIDIA RTX A4000","NVIDIA GeForce RTX 3070","NVIDIA GeForce RTX 3080","NVIDIA RTX A4500","NVIDIA RTX A5000","NVIDIA L4","NVIDIA GeForce RTX 3090"],
-  gpuTypePriority: "custom",
-  imageName: "runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04",
-  containerDiskInGb: 20,
-  volumeInGb: 20,
-  volumeMountPath: "/workspace",
-  ports: ["22/tcp"],
-  supportPublicIp: true,
-  interruptible: false,
-  locked: false,
-  env: {SSH_PUBLIC_KEY: $ssh}
-}' > "$RUNNER_TEMP/create_pod.json"
-
+jq -n --arg ssh "$SSH_PUB" '{name:"rgi-ext-02g1-one-shot",cloudType:"SECURE",computeType:"GPU",gpuCount:1,gpuTypeIds:["NVIDIA RTX A4000","NVIDIA GeForce RTX 3070","NVIDIA GeForce RTX 3080","NVIDIA RTX A4500","NVIDIA RTX A5000","NVIDIA L4","NVIDIA GeForce RTX 3090"],gpuTypePriority:"custom",imageName:"runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04",containerDiskInGb:20,volumeInGb:20,volumeMountPath:"/workspace",ports:["22/tcp"],supportPublicIp:true,interruptible:false,locked:false,env:{SSH_PUBLIC_KEY:$ssh}}' > "$RUNNER_TEMP/create_pod.json"
 curl -sS -f -X POST -H "Authorization: Bearer ${RUNPOD_API}" -H 'Content-Type: application/json' --data-binary "@$RUNNER_TEMP/create_pod.json" "${RUNPOD_API_BASE}/pods" > "$RUNNER_TEMP/pod_created.json"
 POD_ID="$(jq -r '.id // empty' "$RUNNER_TEMP/pod_created.json")"
 [ -n "$POD_ID" ] || { jq '{id,name,costPerHr,adjustedCostPerHr,gpu,publicIp,portMappings}' "$RUNNER_TEMP/pod_created.json" > evidence/runpod_create_sanitized.json; exit 2; }
@@ -91,7 +74,6 @@ print(obj.get('result'))
 PY
 REMOTE
 
-# Basic RunPod SSH does not support SCP, so stream a tar archive over stdout.
 ssh "${SSH_OPTS[@]}" "$SSH_TARGET" 'tar -C /workspace -czf - RGI_EXT_02G1_RUNPOD_ADMISSION_RECEIPT.json RGI_EXT_02G1_ORCHESTRATOR_STDOUT.json RGI_EXT_02G1_NVIDIA_SMI.txt RGI_EXT_02G1_RECEIPT_SHA256.txt .rgi-ext-02g-state/last_execution.json .rgi-ext-02g-state/last_response.json .rgi-ext-02g-state/seal.json rgi-ext-02g-native/last_workload.json' > "$RUNNER_TEMP/evidence_remote.tar.gz"
 tar -xzf "$RUNNER_TEMP/evidence_remote.tar.gz" -C "$RUNNER_TEMP"
 cp "$RUNNER_TEMP/RGI_EXT_02G1_RUNPOD_ADMISSION_RECEIPT.json" evidence/
