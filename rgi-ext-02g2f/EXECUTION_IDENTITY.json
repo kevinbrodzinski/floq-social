@@ -1,0 +1,51 @@
+{
+  "artifact_type": "RGI_EXT_02G2F_FUNDED_FRESH_MEASUREMENT_EXECUTION_IDENTITY",
+  "experiment_id": "RGI-EXT-02G.2f",
+  "execution_identity": "RGI-EXT-02G.2f-FUNDED-FRESH-MEASUREMENT-001-EXECUTION-001",
+  "fresh_measurement_identity": "RGI-EXT-02G.2c-FRESH-MEASUREMENT-001",
+  "status": "PROSPECTIVELY_BOUND_BEFORE_ONE_FUNDED_PROVIDER_CREATE_REQUEST",
+  "parent_funded_replacement_freeze": {
+    "pr": 14,
+    "head_sha": "0b78085fc6e896f4a45785e26893a616c653c607",
+    "preflight_workflow_run_id": 32345347281,
+    "preflight_workflow_job_id": 96352816856,
+    "preflight_conclusion": "success",
+    "required_pass_marker": "RGI_EXT_02G2E_FUNDED_REPLACEMENT_PREFLIGHT_PASS"
+  },
+  "parent_failed_execution": {
+    "pr": 13,
+    "workflow_run_id": 32334127909,
+    "terminal_state": "PRE_OBSERVATION_PROVIDER_CREATE_FAILURE_STOP_NO_FURTHER_RETRY",
+    "failure_cause": "ACCOUNT_BALANCE_TOO_LOW",
+    "pod_id_issued": false,
+    "scientific_measurement_started": false,
+    "successor_observations": 0
+  },
+  "execution_authority": {
+    "provider_create_requests_authorized": 1,
+    "gpu_type_exact": "NVIDIA RTX A4000",
+    "container_image_exact": "runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04",
+    "carrier_equivalence_preflight_required": true,
+    "scientific_sweep_only_after_equivalence_certification": true,
+    "no_second_pod_substitution": true,
+    "no_provider_retry": true,
+    "no_manual_parallel_provisioning": true,
+    "no_parameter_retuning": true,
+    "no_scientific_design_change": true,
+    "delete_pod_on_every_terminal_path": true
+  },
+  "implementation_conformance": {
+    "bootstrap_draws_required": 10000,
+    "all_10000_must_be_valid": true,
+    "failure_if_any_invalid": "ALPHA_UNIDENTIFIABLE_STOP_NO_THETA",
+    "scientific_contract_change": false
+  },
+  "zero_start": {
+    "successor_observations_before_execution": 0,
+    "successor_dataset_must_start_empty": true,
+    "pr10_measurement_reuse_forbidden": true,
+    "pr13_contains_no_measurement": true
+  },
+  "scientific_contract": "UNCHANGED_RGI_EXT_02G2_PLUS_FROZEN_02G2A_CARRIER_EQUIVALENCE_02G2B_SCHEMA_REPAIR_AND_EXACT_10000_BOOTSTRAP_IMPLEMENTATION_CONFORMANCE",
+  "claim_boundary": "Exactly one funded provider create request. No second pod, no retry, no design change."
+}
