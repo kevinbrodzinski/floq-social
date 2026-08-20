@@ -1,0 +1,101 @@
+{
+  "artifact_type": "RGI_EXT_02G2G1_ATOMIC_AVAILABILITY_TO_EXECUTION_FREEZE",
+  "experiment_id": "RGI-EXT-02G.2g.1",
+  "status": "PROSPECTIVELY_FROZEN_BEFORE_SCHEDULE_INSTALLATION_AND_BEFORE_ANY_FUTURE_EXECUTION_IDENTITY",
+  "purpose": "Poll RunPod read-only A4000 availability every five minutes and permit exactly one deterministic availability-to-execution transition on the first qualifying PASS, with a durable one-shot lock acquired before any provider create request.",
+  "parent_availability_gate": {
+    "experiment_id": "RGI-EXT-02G.2g",
+    "pr": 16,
+    "head_sha": "8630d145cd002a77ed99766259202a0c28efd60a",
+    "successful_observation_run_id": 32346034316,
+    "availability_receipt_sha256": "9197b46bdfcd87ee2cb055526cb38f3b1cf73e7cc145311d5029b2ecab975230",
+    "availability_state": "RGI_EXT_02G2G_CARRIER_UNAVAILABLE_NO_EXECUTION_AUTHORIZATION",
+    "provider_create_request_sent": false,
+    "pod_created": false,
+    "scientific_measurement_started": false,
+    "artifact_id": 9398050953,
+    "artifact_sha256": "2eb692b3525c85de1c3eaf94e07de6af06e506eb4dbc5f6f2026712f4026bfb2"
+  },
+  "previous_execution_terminal": {
+    "pr": 15,
+    "workflow_run_id": 32345447050,
+    "terminal_state": "PRE_OBSERVATION_PROVIDER_CREATE_FAILURE_STOP_NO_FURTHER_RETRY",
+    "provider_failure_cause": "NO_INSTANCES_CURRENTLY_AVAILABLE",
+    "pod_id_issued": false,
+    "gpu_observed": false,
+    "scientific_measurement_started": false,
+    "terminal_receipt_sha256": "27ebda457b1f72e622533428dd44afd9f42b7bbd2fc7ec945ec9ab7168bbc5f2",
+    "evidence_artifact_id": 9397847066,
+    "evidence_artifact_sha256": "3a49e473877bc6e8fef2350de5ce858e4093b3bf779390347e9dcd57b9fb971c"
+  },
+  "frozen_scientific_lineage": {
+    "measurement_admissibility_sha256": "aa7c9954b21e55943ae6683519ea41fc387b03d46cab9b2aa79570222ca643d2",
+    "carrier_equivalence_amendment_sha256": "04716f93f260ed3ef8e23201ef21775a25ad2c2cd40949e09a93a99d21472ba0",
+    "repair_freeze_head_sha": "5127ab6d9304e8be18c39fd5742bcb43710bcbca",
+    "fresh_authorization_head_sha": "4f22b9451a665f6266153a7de9b335018ad6ae3b",
+    "funded_replacement_freeze_head_sha": "0b78085fc6e896f4a45785e26893a616c653c607",
+    "fresh_measurement_identity": "RGI-EXT-02G.2c-FRESH-MEASUREMENT-001",
+    "carrier_equivalence_class_id": "NVIDIA_RTX_A4000_CC86_16GB_NATIVE_2MIB_CUDA118_V1",
+    "alpha_bootstrap_valid_draws_required_exact": 10000
+  },
+  "availability_watch": {
+    "provider_operation": "QUERY_ONLY_NO_MUTATION",
+    "query_target": "NVIDIA RTX A4000",
+    "gpu_count": 1,
+    "secure_cloud": true,
+    "poll_cadence_minutes": 5,
+    "availability_pass_state": "RGI_EXT_02G2G_CARRIER_AVAILABLE",
+    "availability_fail_state": "RGI_EXT_02G2G_CARRIER_UNAVAILABLE_NO_EXECUTION_AUTHORIZATION",
+    "provider_create_requests_before_pass": 0,
+    "execution_identity_created_before_pass": false,
+    "scientific_measurement_before_pass": false
+  },
+  "deterministic_first_pass_transition": {
+    "domain_separator": "RGI-EXT-02G.2g.1|ATOMIC-EXECUTION-IDENTITY|v1",
+    "identity_preimage_order": [
+      "domain_separator",
+      "availability_receipt_sha256",
+      "atomic_freeze_commit_sha",
+      "measurement_admissibility_sha256",
+      "carrier_equivalence_amendment_sha256",
+      "repair_freeze_head_sha",
+      "fresh_authorization_head_sha",
+      "fresh_measurement_identity"
+    ],
+    "hash": "SHA256 UTF-8 fields joined by literal vertical-bar separators",
+    "execution_identity_format": "RGI-EXT-02G.2g.1-EXEC-<first24hex_of_identity_sha256>",
+    "max_seconds_from_availability_receipt_to_lock_acquisition": 120,
+    "identity_may_be_derived_only_after_availability_pass": true
+  },
+  "hard_one_shot_consumption_lock": {
+    "lock_ref": "refs/heads/rgi-ext-02g2g1-atomic-consumed",
+    "acquisition": "GitHub create-ref; HTTP 201 is the only successful acquisition",
+    "already_exists_behavior": "STOP_NO_PROVIDER_REQUEST",
+    "other_lock_failure_behavior": "STOP_NO_PROVIDER_REQUEST",
+    "lock_must_be_acquired_before_provider_create_request": true,
+    "provider_create_requests_after_lock": 1,
+    "provider_retry_after_create_failure": false,
+    "second_pod_substitution": false,
+    "parallel_manual_provisioning": false,
+    "later_scheduled_runs_after_lock": "STOP_BEFORE_RUNPOD_AVAILABILITY_QUERY_OR_PROVIDER_REQUEST"
+  },
+  "unchanged_contracts": [
+    "carrier-equivalence class",
+    "GPU_DEVICE_MEMORY_FRACTION coordinate",
+    "2 MiB native quantum",
+    "15-level alpha p-grid",
+    "fixed FP32 1024x1024 workload mathematics",
+    "seed 260819",
+    "latency degradation response D=L_pressure/L_baseline-1",
+    "2 warmup plus 9 retained blocks",
+    "measurement ordering",
+    "environmental exclusions",
+    "alpha OLS estimator and gates",
+    "exactly 10000 valid joint retained-block bootstrap draws",
+    "analytic beta profile",
+    "Theta derivation",
+    "class thresholds",
+    "blind holdout definition and gate"
+  ],
+  "claim_boundary": "This is an execution-channel availability and custody mechanism only. It changes no scientific definition, estimator, threshold, workload, ordering, environmental criterion, carrier-equivalence criterion, beta rule, Theta rule, class rule, or holdout rule. No execution identity exists at freeze time."
+}
