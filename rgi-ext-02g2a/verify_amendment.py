@@ -22,17 +22,26 @@ assert req['resource_coordinate_exact']=='GPU_DEVICE_MEMORY_FRACTION'
 assert req['gpu_count_exact']==1 and req['mig_or_partitioning_allowed'] is False
 assert req['container_image_exact']=='runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04'
 assert req['cuda_python_exact']=='11.8.3' and req['cuda_runtime_family']=='11.8'
-assert req['input_dtype_exact']=='torch.float32' and req['matmul_shape_exact']==[1024,1024] and req['seed_exact']==260819
+assert req['scientific_measurement_input_dtype_exact']=='torch.float32'
+assert req['scientific_measurement_matmul_shape_exact']==[1024,1024]
+assert req['scientific_measurement_seed_exact']==260819
+assert req['compatibility_probe_workload_id']=='RGI_EXT_02G1_CARRIER_MEMORY_PLUS_MATMUL_V1'
+assert req['compatibility_probe_matmul_shape_exact']==[1024,1024]
+assert req['compatibility_probe_dtype_exact']=='torch.float32'
+assert req['compatibility_probe_checksum_reference']==1048574.625
+assert req['workload_checksum_abs_tolerance']==0.001
 assert a['carrier_equivalence_class']['physical_uuid_role']=='PROVENANCE_ONLY_NOT_ADMISSION_CRITERION'
 assert a['preflight_protocol']['provisioning_attempts_authorized']==1
 assert a['preflight_protocol']['no_scientific_response_measurement_before_equivalence_pass'] is True
 assert a['preflight_protocol']['no_retry_or_substitution_after_failure_under_this_amendment'] is True
 for k,v in a['custody'].items(): assert v is False,(k,v)
-# The original science remains frozen and UUID remains present only in the parent profile.
 assert f['resource_coordinate']['id']=='GPU_DEVICE_MEMORY_FRACTION'
 assert len(f['alpha_measurement_grid']['requested_p'])==15
 assert r['identity']['device_name']=='NVIDIA RTX A4000'
 assert r['workload']['payload']['compute_capability']==[8,6]
 assert r['workload']['payload']['native_capacity_bytes']==16883908608
 assert r['native_quantum']['quantum']==2097152
+assert r['workload']['payload']['workload_id']==req['compatibility_probe_workload_id']
+assert r['workload']['payload']['matmul_shape']==req['compatibility_probe_matmul_shape_exact']
+assert abs(r['workload']['payload']['compute_checksum']-req['compatibility_probe_checksum_reference'])<=req['workload_checksum_abs_tolerance']
 print('RGI_EXT_02G2A_AMENDMENT_STATIC_FREEZE_PASS')
