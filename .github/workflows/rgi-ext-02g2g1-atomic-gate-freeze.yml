@@ -1,0 +1,22 @@
+name: RGI EXT 02G2G1 ATOMIC AVAILABILITY EXECUTION FREEZE
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+jobs:
+  atomic-gate-static-freeze:
+    if: github.event.pull_request.head.ref == 'rgi-ext-02g2g1-atomic-availability-execution-gate-20260820'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify prospective atomic gate without RunPod access
+        run: |
+          test -z "${RUNPOD_API:-}"
+          test ! -e evidence
+          python3 rgi-ext-02g2b/schema_contract_test.py
+          python3 rgi-ext-02g2b/verify_repair_freeze.py
+          python3 rgi-ext-02g2c/verify_fresh_measurement_authorization.py
+          python3 rgi-ext-02g2e/verify_funded_replacement_freeze.py
+          python3 rgi-ext-02g2g1/verify_atomic_gate.py
+          python3 -m py_compile rgi-ext-02g2g1/atomic_watch_and_execute.py rgi-ext-02g2g1/verify_atomic_gate.py
