@@ -1,0 +1,64 @@
+name: RGI EXT 02G2G3 TRIANGULATED A4000 WATCH
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+permissions:
+  contents: write
+concurrency:
+  group: rgi-ext-02g2g3-triangulated-a4000-watch
+  cancel-in-progress: false
+jobs:
+  triangulated-watch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      RUNPOD_API: ${{ secrets.RUNPOD_API }}
+      GITHUB_TOKEN: ${{ github.token }}
+      TRIANGULATED_FREEZE_COMMIT_SHA: ba4d8fa53df6c9586cdffa115a588d3896f050d2
+      TRIANGULATED_SOURCE_BRANCH: rgi-ext-02g2g3-triangulated-carrier-availability-gate-20260820
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ba4d8fa53df6c9586cdffa115a588d3896f050d2
+          persist-credentials: false
+      - name: Install runpodctl for read-only provider-native inventory
+        run: |
+          curl -fsSL https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64 -o "$RUNNER_TEMP/runpodctl"
+          chmod +x "$RUNNER_TEMP/runpodctl"
+          echo "RUNPODCTL=$RUNNER_TEMP/runpodctl" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.runpod"; touch "$HOME/.runpod/.runpod.yaml"
+          "$RUNNER_TEMP/runpodctl" config --apiKey "$RUNPOD_API" >/dev/null
+      - name: Verify pinned triangulated freeze before any provider inventory query
+        run: |
+          test "$(git rev-parse HEAD)" = "$TRIANGULATED_FREEZE_COMMIT_SHA"
+          test ! -e evidence
+          python3 rgi-ext-02g2b/schema_contract_test.py
+          python3 rgi-ext-02g2b/verify_repair_freeze.py
+          python3 rgi-ext-02g2c/verify_fresh_measurement_authorization.py
+          python3 rgi-ext-02g2e/verify_funded_replacement_freeze.py
+          python3 rgi-ext-02g2g3/verify_triangulated_gate.py
+      - name: Triangulated read-only availability check and atomic first-PASS transition
+        id: triangulated
+        shell: bash
+        run: |
+          set +e
+          python3 rgi-ext-02g2g3/triangulated_watch_and_execute.py
+          rc=$?
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          if [ -f evidence/AVAILABILITY_RECEIPT.json ]; then
+            jq '{state,availability_passed,predicates,receipt_sha256}' evidence/AVAILABILITY_RECEIPT.json
+          fi
+          if [ -f evidence/EXECUTION_AUTHORIZATION.json ]; then
+            jq '{execution_identity,identity_sha256,availability_receipt_sha256,lock_ref,provider_create_requests_authorized,authorization_sha256}' evidence/EXECUTION_AUTHORIZATION.json
+          fi
+          exit 0
+      - name: Upload first-PASS execution evidence only
+        if: ${{ hashFiles('evidence/EXECUTION_AUTHORIZATION.json') != '' || hashFiles('evidence/TERMINAL_RECEIPT.json') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: rgi-ext-02g2g3-triangulated-first-pass-execution-evidence
+          path: evidence/
+          if-no-files-found: error
+      - name: Preserve unexpected execution failure after evidence upload
+        if: ${{ steps.triangulated.outputs.exit_code != '0' }}
+        run: exit 1
