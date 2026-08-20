@@ -36,7 +36,7 @@ def fit_alpha(blocks,freeze):
         sample=[blocks[rng.randrange(len(blocks))] for __ in range(len(blocks))]
         ag=aggregate(sample,levels)
         if all(x['U']>0 for x in ag): boot.append(linfit([math.log(x['realized_p']) for x in ag],[math.log(x['U']) for x in ag])[0])
-    if len(boot)<9500:return None,{'reason':'BOOTSTRAP_POSITIVITY_COLLAPSE','valid_bootstrap':len(boot),'aggregated':agg}
+    if len(boot)!=10000:return None,{'reason':'BOOTSTRAP_POSITIVITY_COLLAPSE','valid_bootstrap':len(boot),'required_bootstrap':10000,'aggregated':agg}
     lo,hi=percentile(boot,.025),percentile(boot,.975)
     res={'alpha_hat':a,'logA_hat':b,'r2':r2,'ci95':[lo,hi],'ci_width':hi-lo,'loo_alpha_min':min(loo),'loo_alpha_max':max(loo),'loo_alpha_range':max(loo)-min(loo),'bootstrap_valid_draws':len(boot),'aggregated':agg}
     g=freeze['alpha_estimator']['gates']
