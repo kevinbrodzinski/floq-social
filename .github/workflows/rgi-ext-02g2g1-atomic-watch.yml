@@ -1,0 +1,57 @@
+name: RGI EXT 02G2G1 ATOMIC A4000 WATCH
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+permissions:
+  contents: write
+concurrency:
+  group: rgi-ext-02g2g1-atomic-a4000-watch
+  cancel-in-progress: false
+jobs:
+  atomic-watch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      RUNPOD_API: ${{ secrets.RUNPOD_API }}
+      GITHUB_TOKEN: ${{ github.token }}
+      ATOMIC_FREEZE_COMMIT_SHA: 3caebaac261a8ff7b307ef5e344c215951a3b61d
+      ATOMIC_SOURCE_BRANCH: rgi-ext-02g2g1-atomic-availability-execution-gate-20260820
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 3caebaac261a8ff7b307ef5e344c215951a3b61d
+          persist-credentials: false
+      - name: Verify pinned atomic freeze before any RunPod query
+        run: |
+          test "$(git rev-parse HEAD)" = "$ATOMIC_FREEZE_COMMIT_SHA"
+          test ! -e evidence
+          python3 rgi-ext-02g2b/schema_contract_test.py
+          python3 rgi-ext-02g2b/verify_repair_freeze.py
+          python3 rgi-ext-02g2c/verify_fresh_measurement_authorization.py
+          python3 rgi-ext-02g2e/verify_funded_replacement_freeze.py
+          python3 rgi-ext-02g2g1/verify_atomic_gate.py
+      - name: Read-only availability check and atomic first-PASS transition
+        id: atomic
+        shell: bash
+        run: |
+          set +e
+          python3 rgi-ext-02g2g1/atomic_watch_and_execute.py
+          rc=$?
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          if [ -f evidence/AVAILABILITY_RECEIPT.json ]; then
+            jq '{state,availability_passed,receipt_sha256}' evidence/AVAILABILITY_RECEIPT.json
+          fi
+          if [ -f evidence/EXECUTION_AUTHORIZATION.json ]; then
+            jq '{execution_identity,identity_sha256,availability_receipt_sha256,lock_ref,provider_create_requests_authorized,authorization_sha256}' evidence/EXECUTION_AUTHORIZATION.json
+          fi
+          exit 0
+      - name: Upload first-PASS execution evidence only
+        if: ${{ hashFiles('evidence/EXECUTION_AUTHORIZATION.json') != '' || hashFiles('evidence/TERMINAL_RECEIPT.json') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: rgi-ext-02g2g1-atomic-first-pass-execution-evidence
+          path: evidence/
+          if-no-files-found: error
+      - name: Preserve unexpected execution failure after evidence upload
+        if: ${{ steps.atomic.outputs.exit_code != '0' }}
+        run: exit 1
