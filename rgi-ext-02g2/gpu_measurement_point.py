@@ -3,16 +3,32 @@ from __future__ import annotations
 import argparse, hashlib, json, math, subprocess, time
 from pathlib import Path
 
+
+def thermal_or_hw_slowdown_state():
+    p=subprocess.run(['nvidia-smi','-q','-d','PERFORMANCE'],text=True,capture_output=True,timeout=20)
+    if p.returncode: raise RuntimeError(p.stderr[-1000:])
+    evidence=[]; active=False
+    for line in p.stdout.splitlines():
+        s=line.strip()
+        if 'SW Thermal Slowdown' in s or 'HW Thermal Slowdown' in s:
+            evidence.append(s)
+            if ':' in s and s.split(':',1)[1].strip()=='Active': active=True
+    return active,evidence
+
+
 def smi_snapshot():
     q=['nvidia-smi','--query-gpu=uuid,name,temperature.gpu,utilization.gpu,memory.used,memory.total','--format=csv,noheader,nounits']
     p=subprocess.run(q,text=True,capture_output=True,timeout=20)
     if p.returncode: raise RuntimeError(p.stderr[-1000:])
     a=[x.strip() for x in p.stdout.strip().splitlines()[0].split(',')]
-    return {'uuid':a[0],'name':a[1],'temperature_c':float(a[2]),'utilization_pct':float(a[3]),'memory_used_mib':float(a[4]),'memory_total_mib':float(a[5]),'at_ns':time.time_ns()}
+    active,evidence=thermal_or_hw_slowdown_state()
+    return {'uuid':a[0],'name':a[1],'temperature_c':float(a[2]),'utilization_pct':float(a[3]),'memory_used_mib':float(a[4]),'memory_total_mib':float(a[5]),'thermal_or_hw_slowdown_active':active,'slowdown_evidence':evidence,'at_ns':time.time_ns()}
+
 
 def med(xs):
     y=sorted(float(x) for x in xs); n=len(y)
     return y[n//2] if n%2 else (y[n//2-1]+y[n//2])/2
+
 
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--p',type=float,required=True);ap.add_argument('--quantum',type=int,required=True);ap.add_argument('--out',required=True)
