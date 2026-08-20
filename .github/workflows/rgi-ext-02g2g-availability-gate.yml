@@ -1,0 +1,28 @@
+name: RGI EXT 02G2G ZERO COST CARRIER AVAILABILITY GATE
+on:
+  pull_request:
+    types: [opened, synchronize]
+permissions:
+  contents: read
+jobs:
+  availability-gate:
+    if: github.event.pull_request.head.ref == 'rgi-ext-02g2g-zero-cost-carrier-availability-gate-20260820'
+    runs-on: ubuntu-24.04
+    env:
+      RUNPOD_API: ${{ secrets.RUNPOD_API }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify no provisioning code path is invoked
+        run: |
+          test ! -e evidence
+          grep -q 'provider_create_requests_authorized_by_this_gate": 0' rgi-ext-02g2g/AVAILABILITY_GATE_FREEZE.json
+          python3 -m py_compile rgi-ext-02g2g/check_availability.py
+      - name: Query A4000 availability only
+        run: python3 rgi-ext-02g2g/check_availability.py
+      - name: Surface availability receipt
+        run: jq '{state,availability_passed,gpu_result,provider_create_request_sent,pod_created,scientific_measurement_started,receipt_sha256}' evidence/AVAILABILITY_RECEIPT.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rgi-ext-02g2g-carrier-availability-receipt
+          path: evidence/
+          if-no-files-found: error

@@ -1,0 +1,88 @@
+{
+  "artifact_type": "RGI_EXT_02G2E_FUNDED_PREOBSERVATION_REPLACEMENT_AUTHORIZATION",
+  "experiment_id": "RGI-EXT-02G.2e",
+  "status": "PROSPECTIVELY_FROZEN_BEFORE_ANY_NEW_PROVIDER_CREATE_REQUEST",
+  "purpose": "Authorize exactly one funded replacement provider create request after a zero-cost implementation-conformance preflight, preserving all frozen scientific and instrumentation contracts.",
+  "parent_terminal_execution": {
+    "pr": 13,
+    "workflow_run_id": 32334127909,
+    "head_sha": "fb47b7301a7365916edeb5d8c443ad8e14afd513",
+    "terminal_state": "PRE_OBSERVATION_PROVIDER_CREATE_FAILURE_STOP_NO_FURTHER_RETRY",
+    "stage": "RUNPOD_CREATE",
+    "http_status": 500,
+    "provider_failure_cause": "ACCOUNT_BALANCE_TOO_LOW",
+    "pod_id_issued": false,
+    "gpu_observed": false,
+    "carrier_equivalence_preflight_started": false,
+    "scientific_measurement_started": false,
+    "successor_observation_count": 0,
+    "terminal_receipt_sha256": "5bd2fa9279b06fbd062c90a86b1cdc9b6a75b4647858ded6d412e85d32344b9d",
+    "evidence_artifact_id": 9394016201,
+    "evidence_artifact_sha256": "064e3ead7f5a7a7a75434028eaeb93ab262c9e3f6a505305c4fd6b7a12d1b03d"
+  },
+  "funding_condition": {
+    "user_confirmed_runpod_funded": true,
+    "confirmation_time_context": "2026-08-20",
+    "funding_confirmation_is_execution_channel_only": true,
+    "funding_confirmation_does_not_change_science": true
+  },
+  "frozen_lineage": {
+    "measurement_admissibility_sha256": "aa7c9954b21e55943ae6683519ea41fc387b03d46cab9b2aa79570222ca643d2",
+    "carrier_equivalence_amendment_sha256": "04716f93f260ed3ef8e23201ef21775a25ad2c2cd40949e09a93a99d21472ba0",
+    "repair_freeze_pr": 11,
+    "repair_freeze_head_sha": "5127ab6d9304e8be18c39fd5742bcb43710bcbca",
+    "fresh_authorization_pr": 12,
+    "fresh_authorization_head_sha": "4f22b9451a665f6266153a7de9b335018ad6ae3b",
+    "fresh_authorization_preflight_run": 32333873662,
+    "fresh_measurement_identity": "RGI-EXT-02G.2c-FRESH-MEASUREMENT-001",
+    "carrier_equivalence_class_id": "NVIDIA_RTX_A4000_CC86_16GB_NATIVE_2MIB_CUDA118_V1"
+  },
+  "zero_observation_custody": {
+    "successor_dataset_must_begin_empty": true,
+    "successor_observation_count_before_replacement": 0,
+    "pr10_single_warmup_observation_remains_non_reusable": true,
+    "pr13_contains_no_scientific_observation": true
+  },
+  "implementation_conformance_guard": {
+    "scientific_contract_change": false,
+    "reason": "The frozen alpha uncertainty rule requires 10000 block-bootstrap resamples. The inherited executor accepted >=9500 valid bootstrap draws. Before funded execution, implementation must enforce the already-frozen 10000-draw requirement exactly.",
+    "required_behavior": "alpha estimation may proceed only if all 10000 registered block-bootstrap draws produce strictly positive aggregated U at all levels; otherwise ALPHA_UNIDENTIFIABLE_STOP_NO_THETA",
+    "no_estimator_change": true,
+    "no_threshold_change": true,
+    "no_resampling_distribution_change": true,
+    "no_seed_change": true
+  },
+  "unchanged_contracts": [
+    "carrier-equivalence class",
+    "GPU_DEVICE_MEMORY_FRACTION coordinate",
+    "2 MiB native quantum",
+    "15-level alpha p-grid",
+    "fixed FP32 1024x1024 workload mathematics",
+    "seed 260819",
+    "latency degradation response D=L_pressure/L_baseline-1",
+    "2 warmup plus 9 retained blocks",
+    "measurement ordering",
+    "environmental exclusions",
+    "alpha OLS estimator and gates",
+    "10000 joint retained-block bootstrap draws",
+    "analytic beta profile",
+    "Theta derivation",
+    "class thresholds",
+    "blind holdout definition and gate"
+  ],
+  "authorization_boundary": {
+    "provider_create_requests_authorized_by_this_freeze": 0,
+    "required_zero_cost_gate": "RGI_EXT_02G2E_FUNDED_REPLACEMENT_PREFLIGHT_PASS",
+    "after_required_zero_cost_gate_only": {
+      "provider_create_requests_authorized": 1,
+      "gpu_type": "NVIDIA RTX A4000",
+      "carrier_equivalence_preflight_required": true,
+      "science_allowed_only_after_carrier_equivalence_certification": true,
+      "second_pod_substitution_authorized": false,
+      "provider_retry_after_create_failure_authorized": false,
+      "manual_parallel_provisioning_authorized": false,
+      "response_dependent_retuning_authorized": false
+    }
+  },
+  "claim_boundary": "This authorization is execution-channel custody plus exact implementation conformance to the already-frozen bootstrap rule. It adds no scientific evidence and changes no scientific design." 
+}

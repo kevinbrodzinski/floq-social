@@ -1,0 +1,214 @@
+{
+  "alpha_estimator": {
+    "ci_level": 0.95,
+    "failure_terminal": "ALPHA_UNIDENTIFIABLE_STOP_NO_THETA",
+    "fit": "OLS log U(p) = log A + alpha log p on all 15 realized aligned p levels",
+    "gates": {
+      "all_15_levels_required": true,
+      "alpha_ci_low_strictly_gt": 0.0,
+      "alpha_ci_width_max": 0.03,
+      "leave_one_level_out_alpha_range_max": 0.02,
+      "r2_min": 0.999
+    },
+    "positivity_gate": "all aggregated U(p) values must be strictly >0",
+    "profile_id": "rgi.ext02g2.alpha.pure_power_latency_degradation.v1",
+    "structural_tautology_gate": "refuse if response code path uses p, allocated bytes, or derived allocation size as the reported response rather than independent fixed-work timing",
+    "uncertainty": "10000 block-bootstrap resamples; each draw resamples the 9 retained blocks with replacement jointly across all p levels and refits"
+  },
+  "alpha_measurement_grid": {
+    "count": 15,
+    "formula": "p_k = 2^(-8 + k/2), k=0..14",
+    "monotone": true,
+    "no_response_dependent_cropping": true,
+    "requested_p": [
+      "0.00390625",
+      "0.0055242717280199029",
+      "0.0078125",
+      "0.011048543456039806",
+      "0.015625",
+      "0.022097086912079612",
+      "0.03125",
+      "0.044194173824159223",
+      "0.0625",
+      "0.088388347648318447",
+      "0.125",
+      "0.17677669529663689",
+      "0.25",
+      "0.35355339059327379",
+      "0.5"
+    ],
+    "use_realized_aligned_p_for_estimation": true
+  },
+  "artifact_type": "RGI_EXT_02G2_NATIVE_GPU_MEASUREMENT_ADMISSIBILITY_FREEZE",
+  "authorized_next_state": "FROZEN_STOP_BEFORE_SCIENTIFIC_GPU_MEASUREMENT",
+  "beta_estimator": {
+    "beta_hat": 1.0,
+    "certificate_requirements": {
+      "boundary_manifold": "single upper endpoint p=1",
+      "chart_dimension": 1,
+      "coordinate_linear_in_native_bytes": true,
+      "gap_coordinate": "g = 1-p",
+      "normal_codimension_c": 1,
+      "normal_flatness_order_m": 1
+    },
+    "ci95": [
+      1.0,
+      1.0
+    ],
+    "claim_boundary": "This is an analytic beta for the one-dimensional memory-fraction boundary chart, not an empirical multi-entity GPU opportunity-tail estimate.",
+    "equation": "beta = c/m",
+    "failure_terminal": "BETA_GEOMETRY_PROFILE_INAPPLICABLE_STOP_NO_THETA",
+    "kind": "ANALYTIC_SCALAR_CHART_CERTIFICATE",
+    "profile_id": "rgi.ext02g2.beta.scalar_capacity_chart.v1"
+  },
+  "blind_outcome": {
+    "claim_boundary": "Measurement-profile replication only. It is not a boundary-contact H/K validation and cannot by itself validate Resource Geometry contact universality on GPUs.",
+    "collection_authorization": "No holdout response may be collected until alpha, beta, Theta and class are sealed and class is non-AMBIGUOUS.",
+    "holdout_count": 7,
+    "holdout_estimator": "same log-log estimator on holdout responses, with 10000 bootstrap resamples",
+    "name": "RGI_EXT_02G2_BLIND_MEASUREMENT_REPLICATION",
+    "no_retune_or_rerun_under_same_identity": true,
+    "pass_conjunction": {
+      "abs_alpha_holdout_minus_locked_alpha_max": 0.05,
+      "all_holdout_U_positive": true,
+      "alpha_ci_intersection_required": true,
+      "holdout_class_must_equal_locked_class": true,
+      "holdout_r2_min": 0.99,
+      "same_class_rule_required": true
+    },
+    "requested_p_holdout": [
+      "0.004645340292979379",
+      "0.009290680585958758",
+      "0.018581361171917516",
+      "0.037162722343835032",
+      "0.074325444687670064",
+      "0.14865088937534013",
+      "0.29730177875068026"
+    ],
+    "retained_replicates_per_p": 5,
+    "same_workload_and_environment_rules": true,
+    "terminal_fail": "BLIND_MEASUREMENT_REPLICATION_FAIL",
+    "terminal_pass": "BLIND_MEASUREMENT_REPLICATION_PASS"
+  },
+  "class_rule": {
+    "marginal": "abs(Theta_hat-1) <= 0.03 AND Theta_CI95_low >= 0.94 AND Theta_CI95_high <= 1.06",
+    "otherwise": "AMBIGUOUS_STOP_BEFORE_BLIND_OUTCOME",
+    "quadratic": "Theta_CI95_low > 1.03",
+    "rule_id": "rgi.class.rg-ai-05-unity-ci.v1",
+    "superquadratic": "Theta_CI95_high < 0.97",
+    "superquadratic_contact_exponent_if_applicable": "p_contact_hat = 1 + 1/Theta_hat"
+  },
+  "custody": {
+    "alpha_measured": false,
+    "beta_empirically_measured": false,
+    "blind_outcome_collected": false,
+    "boundary_contact_H_seen": false,
+    "boundary_contact_K_seen": false,
+    "class_assigned": false,
+    "freeze_required_before_any_scientific_gpu_call": true,
+    "scientific_sweep_executed": false,
+    "theta_computed": false
+  },
+  "experiment_id": "RGI-EXT-02G.2",
+  "gpu_identity_lock": {
+    "device_name": "NVIDIA RTX A4000",
+    "device_uuid": "GPU-55eb4058-eae5-9047-8680-bb022c738fe9",
+    "driver_version": "550.127.08",
+    "identity_match_policy": "EXACT_DEVICE_UUID_AND_DEVICE_NAME_REQUIRED_FOR_SCIENTIFIC_SWEEP",
+    "mismatch_terminal": "GPU_IDENTITY_MISMATCH_STOP_NO_MEASUREMENT",
+    "pci_bus_id": "00000000:42:00.0",
+    "vendor": "NVIDIA"
+  },
+  "measurement_ordering": {
+    "blocks": [
+      {"block": 1, "kind": "WARMUP", "level_indices": [8, 0, 14, 9, 10, 4, 3, 12, 6, 5, 11, 13, 1, 2, 7]},
+      {"block": 2, "kind": "WARMUP", "level_indices": [11, 10, 3, 0, 5, 7, 4, 12, 6, 8, 1, 9, 14, 13, 2]},
+      {"block": 3, "kind": "RETAINED", "level_indices": [0, 13, 9, 12, 1, 8, 14, 4, 2, 6, 7, 5, 10, 11, 3]},
+      {"block": 4, "kind": "RETAINED", "level_indices": [13, 6, 7, 12, 11, 10, 3, 2, 14, 9, 4, 8, 1, 0, 5]},
+      {"block": 5, "kind": "RETAINED", "level_indices": [5, 6, 1, 12, 11, 10, 14, 13, 8, 9, 4, 2, 0, 3, 7]},
+      {"block": 6, "kind": "RETAINED", "level_indices": [4, 8, 7, 13, 2, 6, 3, 0, 5, 10, 11, 9, 14, 12, 1]},
+      {"block": 7, "kind": "RETAINED", "level_indices": [4, 5, 9, 10, 12, 11, 6, 2, 1, 0, 8, 14, 7, 13, 3]},
+      {"block": 8, "kind": "RETAINED", "level_indices": [14, 10, 0, 12, 6, 13, 5, 9, 2, 1, 4, 11, 3, 7, 8]},
+      {"block": 9, "kind": "RETAINED", "level_indices": [14, 0, 1, 7, 3, 12, 5, 2, 8, 9, 13, 6, 4, 11, 10]},
+      {"block": 10, "kind": "RETAINED", "level_indices": [10, 13, 2, 5, 14, 11, 9, 12, 7, 1, 6, 0, 4, 3, 8]},
+      {"block": 11, "kind": "RETAINED", "level_indices": [11, 12, 13, 2, 0, 6, 5, 4, 8, 10, 7, 9, 14, 3, 1]}
+    ],
+    "derivation": "sort level indices by SHA256('RGI-EXT-02G.2-MEASUREMENT-ORDER-v1|<block>|<index>')",
+    "fixed_before_measurement": true
+  },
+  "native_quantum": {
+    "alignment_rule": "requested_pressure_bytes = floor(requested_p * capacity_bytes / quantum_bytes) * quantum_bytes",
+    "bytes": 2097152,
+    "mib": 2,
+    "refusal_if_runtime_quantum_differs": true,
+    "source": "CUDA_DRIVER_cuMemGetAllocationGranularity",
+    "terminal": "NATIVE_QUANTUM_MISMATCH_STOP_NO_MEASUREMENT"
+  },
+  "parent": {
+    "carrier_commitment_sha256": "a9623893c3a47941d5b705d7f52d99a3eb333783e7b49ee733200f57f01f7bfb",
+    "carrier_receipt_file": "EXT02G1_SUCCESSFUL_CARRIER_RECEIPT.json",
+    "carrier_receipt_sha256": "813b24ff0f6fe2d84df30110c2b5be8a36e3ee333c9ca0ad98a0aa458c4e5a9a",
+    "experiment_id": "RGI-EXT-02G.1",
+    "no_repeat_carrier_admission_under_this_identity": true,
+    "result": "GPU_EXECUTION_CARRIER_ADMITTED",
+    "sealed_response_sha256": "c4128065188c1c6d9bc3e9e1bafe12382b50d813619e61fcc8adf619443239be",
+    "successful_head_commit": "132e9b22e5c73717f0e9820f95af70a7b5dc3627",
+    "workflow_artifact_id": 9391341074,
+    "workflow_artifact_sha256": "730710a92b1dacb5b75a1201d14e452280f9edbc39140b798cd918040d0e9857",
+    "workflow_run_id": 32325868074
+  },
+  "repetition_rule": {
+    "block_invalidity_policy": "ANY retained-block environmental exclusion terminates the run; no point deletion and no replacement block",
+    "every_block_contains_every_alpha_grid_level_once": true,
+    "one_fresh_process_per_point": true,
+    "retained_blocks": 9,
+    "retained_replicates_per_p": 9,
+    "warmup_blocks": 2
+  },
+  "resource_coordinate": {
+    "definition": "p = resident pressure-buffer bytes / native physical device-memory capacity bytes",
+    "fit_coordinate": "realized_fraction_after_native_quantum_alignment",
+    "fixed_workload_footprint_excluded_from_p": "constant nuisance footprint recorded separately at every point",
+    "id": "GPU_DEVICE_MEMORY_FRACTION",
+    "orientation": "p increases toward the upper memory-capacity boundary",
+    "physical_boundary": 1.0
+  },
+  "status": "PROSPECTIVELY_FROZEN_NO_SCIENTIFIC_MEASUREMENT",
+  "thermal_load_exclusions": {
+    "active_thermal_or_hw_slowdown_allowed": false,
+    "external_compute_processes_allowed": 0,
+    "failure_terminal": "ENVIRONMENT_INADMISSIBLE_STOP_NO_ESTIMATE",
+    "idle_sample_period_seconds": 1,
+    "max_gpu_utilization_pct_each_idle_sample": 5,
+    "max_pre_point_device_memory_used_mib": 1024,
+    "max_pre_point_temperature_c": 70,
+    "max_pressure_phase_temperature_c": 80,
+    "no_response_dependent_retry": true,
+    "post_pressure_max_temperature_rise_from_baseline_c": 3,
+    "pre_point_idle_samples": 5,
+    "settle_after_pressure_seconds": 2
+  },
+  "theta_rule": {
+    "derivation_id": "bs.theta.alpha_plus_beta.v0.1",
+    "equation": "Theta_hat = alpha_hat + beta_hat",
+    "interval_rule": "Theta 95% interval = alpha 95% interval shifted by beta=1 under the frozen analytic beta certificate"
+  },
+  "version": "1.0",
+  "workload_invariant": {
+    "aggregate_response": "U(p) = median across retained blocks of D_b(p)",
+    "baseline_phase": "with fixed operands resident and no pressure buffer: 2 unrecorded warmup matmuls then 5 recorded CUDA-event matmuls",
+    "checksums_required": true,
+    "fixed_operands": {
+      "device": "cuda:0",
+      "dtype": "float32",
+      "seed": 260819,
+      "shape": [1024, 1024]
+    },
+    "id": "RGI_EXT_02G2_FIXED_WORK_LATENCY_UNDER_MEMORY_PRESSURE_V1",
+    "per_replicate_response": "D_b(p) = L_pressure_b(p) / L_baseline_b(p) - 1",
+    "point_latency_statistic": "median of 5 CUDA-event elapsed-ms values",
+    "pressure_phase": "allocate and touch quantum-aligned uint8 pressure buffer at requested p; synchronize; settle 2 s; keep buffer resident; 2 unrecorded warmup matmuls then 5 recorded CUDA-event matmuls",
+    "process_isolation": "fresh process for every p replicate",
+    "response_must_not_use": "allocated bytes, requested p, fill duration, allocation count, or any quantity mechanically proportional to p"
+  }
+}

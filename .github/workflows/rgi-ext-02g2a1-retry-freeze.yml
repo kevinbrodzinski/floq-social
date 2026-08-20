@@ -1,0 +1,21 @@
+name: RGI EXT 02G2A1 PREOBSERVATION RETRY FREEZE
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+jobs:
+  freeze-preobservation-retry:
+    if: github.event.pull_request.head.ref == 'rgi-ext-02g2a1-preobservation-transport-retry-freeze-20260819'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify retry scope and unchanged parent contracts
+        run: python3 rgi-ext-02g2a1/verify_retry_freeze.py
+      - name: Freeze hashes
+        run: |
+          sha256sum rgi-ext-02g2a1/PREOBSERVATION_TRANSPORT_RETRY_FREEZE.json rgi-ext-02g2a1/verify_retry_freeze.py | tee RGI_EXT_02G2A1_RETRY_FREEZE_SHA256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rgi-ext-02g2a1-preobservation-retry-freeze
+          path: RGI_EXT_02G2A1_RETRY_FREEZE_SHA256.txt
