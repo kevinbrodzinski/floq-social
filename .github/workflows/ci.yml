@@ -42,3 +42,22 @@ jobs:
           assert not any(x in src for x in forbidden)
           print('RGI-EXT-02G CONTRACT REVIEW: PASS')
           PY
+
+  runpod-first-discrete-gpu-carrier-admission:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      RUNPOD_API: ${{ secrets.RUNPOD_API }}
+      TARGET_BRANCH: rgi-ext-02g1-runpod-carrier-20260819
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run one-shot RunPod carrier admission
+        run: bash rgi-ext-02g/runpod_admission_ci.sh
+      - name: Upload first discrete-GPU carrier evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rgi-ext-02g1-runpod-discrete-gpu-admission
+          path: evidence/
+          if-no-files-found: warn
