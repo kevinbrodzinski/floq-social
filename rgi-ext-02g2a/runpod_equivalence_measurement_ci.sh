@@ -2,7 +2,7 @@
 set -euo pipefail
 : "${RUNPOD_API:?RUNPOD_API secret required}"
 RUNPOD_API_BASE="${RUNPOD_API_BASE:-https://rest.runpod.io/v1}"
-TARGET_BRANCH="${TARGET_BRANCH:-rgi-ext-02g2a-carrier-equivalence-exec-20260819}"
+TARGET_BRANCH="${TARGET_BRANCH:-rgi-ext-02g2a1-preobservation-retry-exec-20260819}"
 mkdir -p evidence
 POD_ID=''
 cleanup(){
@@ -17,9 +17,40 @@ chmod +x "$RUNNER_TEMP/runpodctl"
 mkdir -p "$HOME/.runpod"; touch "$HOME/.runpod/.runpod.yaml"
 "$RUNNER_TEMP/runpodctl" config --apiKey "$RUNPOD_API" >/dev/null
 jq -n '{name:"rgi-ext-02g2a-one-shot",cloudType:"SECURE",computeType:"GPU",gpuCount:1,gpuTypeIds:["NVIDIA RTX A4000"],gpuTypePriority:"custom",imageName:"runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04",containerDiskInGb:20,volumeInGb:20,volumeMountPath:"/workspace",ports:["22/tcp"],supportPublicIp:true,interruptible:false,locked:false}' > "$RUNNER_TEMP/create_pod.json"
-curl -sS -f -X POST -H "Authorization: Bearer ${RUNPOD_API}" -H 'Content-Type: application/json' --data-binary "@$RUNNER_TEMP/create_pod.json" "${RUNPOD_API_BASE}/pods" > "$RUNNER_TEMP/pod_created.json"
+http_code="$(curl -sS -o "$RUNNER_TEMP/pod_created.json" -w '%{http_code}' -X POST -H "Authorization: Bearer ${RUNPOD_API}" -H 'Content-Type: application/json' --data-binary "@$RUNNER_TEMP/create_pod.json" "${RUNPOD_API_BASE}/pods" || true)"
+printf '%s\n' "$http_code" > evidence/runpod_create_http_status.txt
+if [[ "$http_code" =~ ^5[0-9][0-9]$ ]]; then
+  cp "$RUNNER_TEMP/pod_created.json" evidence/runpod_create_response.txt 2>/dev/null || true
+  python3 - "$http_code" > evidence/TERMINAL_RECEIPT.json <<'PY'
+import hashlib,json,sys,time
+code=sys.argv[1]
+o={"artifact_type":"RGI_EXT_02G2A1_TERMINAL_RECEIPT","terminal_state":"PRE_OBSERVATION_PROVIDER_CREATE_FAILURE_STOP_NO_FURTHER_RETRY","stage":"RUNPOD_CREATE","http_status":code,"pod_id_issued":False,"gpu_observed":False,"carrier_equivalence_preflight_started":False,"scientific_measurement_started":False,"completed_at_ns":time.time_ns()}
+o["receipt_sha256"]=hashlib.sha256(json.dumps(o,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+print(json.dumps(o,indent=2,sort_keys=True))
+PY
+  exit 0
+fi
+if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
+  cp "$RUNNER_TEMP/pod_created.json" evidence/runpod_create_response.txt 2>/dev/null || true
+  python3 - "$http_code" > evidence/TERMINAL_RECEIPT.json <<'PY'
+import hashlib,json,sys,time
+code=sys.argv[1]
+o={"artifact_type":"RGI_EXT_02G2A1_TERMINAL_RECEIPT","terminal_state":"PRE_OBSERVATION_PROVIDER_CREATE_NON5XX_FAILURE_STOP_NO_FURTHER_RETRY","stage":"RUNPOD_CREATE","http_status":code,"pod_id_issued":False,"gpu_observed":False,"carrier_equivalence_preflight_started":False,"scientific_measurement_started":False,"completed_at_ns":time.time_ns()}
+o["receipt_sha256"]=hashlib.sha256(json.dumps(o,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+print(json.dumps(o,indent=2,sort_keys=True))
+PY
+  exit 0
+fi
 POD_ID="$(jq -r '.id // empty' "$RUNNER_TEMP/pod_created.json")"
-[ -n "$POD_ID" ] || exit 2
+if [ -z "$POD_ID" ]; then
+  cp "$RUNNER_TEMP/pod_created.json" evidence/runpod_create_response.txt 2>/dev/null || true
+  python3 > evidence/TERMINAL_RECEIPT.json <<'PY'
+import hashlib,json,time
+o={"artifact_type":"RGI_EXT_02G2A1_TERMINAL_RECEIPT","terminal_state":"PRE_OBSERVATION_CREATE_RESPONSE_MISSING_POD_ID_STOP_NO_FURTHER_RETRY","stage":"RUNPOD_CREATE","pod_id_issued":False,"gpu_observed":False,"carrier_equivalence_preflight_started":False,"scientific_measurement_started":False,"completed_at_ns":time.time_ns()}
+o["receipt_sha256"]=hashlib.sha256(json.dumps(o,sort_keys=True,separators=(',',':')).encode()).hexdigest();print(json.dumps(o,indent=2,sort_keys=True))
+PY
+  exit 0
+fi
 jq '{id,name,costPerHr,adjustedCostPerHr,gpu,publicIp,portMappings,image,machineId,lastStartedAt}' "$RUNNER_TEMP/pod_created.json" > evidence/runpod_create_sanitized.json
 PUBLIC_IP='';SSH_PORT='';SSH_KEY='';KEY_IN_ACCOUNT=''
 for attempt in $(seq 1 90); do
@@ -46,6 +77,7 @@ git clone --depth 1 --branch "$TARGET_BRANCH" https://github.com/kevinbrodzinski
 cd /workspace/floq-social
 python3 -m pip install --quiet --disable-pip-version-check 'cuda-python==11.8.3'
 python3 rgi-ext-02g2a/verify_amendment.py
+python3 rgi-ext-02g2a1/verify_retry_freeze.py
 python3 -m py_compile rgi-ext-02g2/gpu_measurement_common.py rgi-ext-02g2/gpu_measurement_point.py rgi-ext-02g2/measurement_executor.py rgi-ext-02g2a/equivalence_preflight.py rgi-ext-02g2a/measurement_executor_equiv.py
 mkdir -p /workspace/ext02g2a-evidence
 python3 rgi-ext-02g2a/equivalence_preflight.py --out /workspace/ext02g2a-evidence > /workspace/ext02g2a-evidence/equivalence_stdout.txt 2> /workspace/ext02g2a-evidence/equivalence_stderr.txt
