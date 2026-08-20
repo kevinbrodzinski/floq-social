@@ -1,0 +1,55 @@
+{
+  "artifact_type": "RGI_EXT_02G2G_ZERO_COST_CARRIER_AVAILABILITY_GATE_FREEZE",
+  "experiment_id": "RGI-EXT-02G.2g",
+  "status": "PROSPECTIVELY_FROZEN_BEFORE_READ_ONLY_AVAILABILITY_QUERY",
+  "purpose": "Prevent blind one-shot provisioning attempts by requiring a read-only RunPod availability query for the exact frozen carrier type before any new execution authorization may be issued.",
+  "parent_execution": {
+    "pr": 15,
+    "workflow_run_id": 32345447050,
+    "head_sha": "2b720358aa1b51859b9cfff93ace87c61e929203",
+    "terminal_state": "PRE_OBSERVATION_PROVIDER_CREATE_FAILURE_STOP_NO_FURTHER_RETRY",
+    "stage": "RUNPOD_CREATE",
+    "provider_failure_cause": "NO_INSTANCES_CURRENTLY_AVAILABLE",
+    "pod_id_issued": false,
+    "gpu_observed": false,
+    "carrier_equivalence_preflight_started": false,
+    "scientific_measurement_started": false,
+    "successor_observation_count": 0,
+    "terminal_receipt_sha256": "27ebda457b1f72e622533428dd44afd9f42b7bbd2fc7ec945ec9ab7168bbc5f2",
+    "evidence_artifact_id": 9397847066,
+    "evidence_artifact_sha256": "3a49e473877bc6e8fef2350de5ce858e4093b3bf779390347e9dcd57b9fb971c"
+  },
+  "frozen_lineage": {
+    "measurement_admissibility_sha256": "aa7c9954b21e55943ae6683519ea41fc387b03d46cab9b2aa79570222ca643d2",
+    "carrier_equivalence_amendment_sha256": "04716f93f260ed3ef8e23201ef21775a25ad2c2cd40949e09a93a99d21472ba0",
+    "repair_freeze_pr": 11,
+    "fresh_authorization_pr": 12,
+    "funded_preobservation_freeze_pr": 14,
+    "fresh_measurement_identity": "RGI-EXT-02G.2c-FRESH-MEASUREMENT-001",
+    "carrier_equivalence_class_id": "NVIDIA_RTX_A4000_CC86_16GB_NATIVE_2MIB_CUDA118_V1"
+  },
+  "availability_query": {
+    "provider": "RunPod",
+    "api": "GraphQL gpuTypes/lowestPrice",
+    "operation_type": "QUERY_ONLY_NO_MUTATION",
+    "gpu_type_id": "NVIDIA RTX A4000",
+    "gpu_count": 1,
+    "secure_cloud": true,
+    "required_fields": ["stockStatus", "uninterruptablePrice", "availableGpuCounts"],
+    "availability_pass": "stockStatus != None AND availableGpuCounts contains 1 AND uninterruptablePrice is non-null",
+    "availability_fail": "otherwise",
+    "query_does_not_create_or_reserve_resources": true
+  },
+  "authorization_boundary": {
+    "provider_create_requests_authorized_by_this_gate": 0,
+    "execution_authorization_may_be_issued_only_after": "RGI_EXT_02G2G_CARRIER_AVAILABLE",
+    "availability_receipt_must_be_bound_into_execution_authorization": true,
+    "execution_authorization_must_be_separately_identified": true,
+    "maximum_provider_create_requests_after_pass": 1,
+    "no_parallel_or_manual_provisioning": true,
+    "no_second_pod_substitution": true,
+    "no_provider_retry_under_same_execution_identity": true
+  },
+  "unchanged_science": true,
+  "claim_boundary": "This gate adds no scientific evidence and authorizes no provisioning. It is a read-only execution-channel availability check for the exact frozen A4000 carrier type."
+}

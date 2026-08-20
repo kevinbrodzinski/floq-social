@@ -1,0 +1,36 @@
+name: RGI EXT 02G2A1 PREOBSERVATION RETRY EXECUTION
+on:
+  pull_request:
+    types: [opened]
+permissions:
+  contents: read
+jobs:
+  one-frozen-replacement-create:
+    if: github.event.pull_request.head.ref == 'rgi-ext-02g2a1-preobservation-retry-exec-20260819'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      RUNPOD_API: ${{ secrets.RUNPOD_API }}
+      TARGET_BRANCH: rgi-ext-02g2a1-preobservation-retry-exec-20260819
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify all prospective freezes before replacement request
+        run: |
+          test "$(sha256sum rgi-ext-02g2a1/PREOBSERVATION_TRANSPORT_RETRY_FREEZE.json | cut -d' ' -f1)" = "6eca4b02cef12367fa1b60e80b3d4e28dac8ac0745f4d3a7a645654c6e5b2489"
+          test "$(jq -r '.freeze_head_sha' rgi-ext-02g2a1/RETRY_FREEZE_MANIFEST.json)" = "04a44bcd9e405e6c355fa880c985310608744f49"
+          test "$(jq -r '.artifact_sha256' rgi-ext-02g2a1/RETRY_FREEZE_MANIFEST.json)" = "0801b3271b326bf425447bfd5b7859738951ea6d37df53c20929360791be1d44"
+          python3 rgi-ext-02g2a/verify_amendment.py
+          python3 rgi-ext-02g2a1/verify_retry_freeze.py
+      - name: Send exactly one replacement create request and continue only on a created Pod
+        run: bash rgi-ext-02g2a/runpod_equivalence_measurement_ci.sh
+      - name: Surface terminal evidence
+        if: always()
+        run: |
+          if [ -f evidence/EQUIVALENCE_CERTIFICATE.json ]; then jq '{state,carrier_class_id,all_checks_passed,certificate_sha256}' evidence/EQUIVALENCE_CERTIFICATE.json; fi
+          if [ -f evidence/TERMINAL_RECEIPT.json ]; then jq '{terminal_state,stage,http_status,completed_at_ns,receipt_sha256}' evidence/TERMINAL_RECEIPT.json; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rgi-ext-02g2a1-replacement-create-evidence
+          path: evidence/
+          if-no-files-found: warn
