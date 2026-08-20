@@ -16,9 +16,13 @@ cleanup() {
 }
 trap cleanup EXIT
 
-START_CMD='set -e; mkdir -p /root/.ssh; chmod 700 /root/.ssh; printf "%s\n" "$SSH_PUBLIC_KEY" > /root/.ssh/authorized_keys; chmod 600 /root/.ssh/authorized_keys; if ! command -v sshd >/dev/null 2>&1; then apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq openssh-server; fi; mkdir -p /run/sshd; exec /usr/sbin/sshd -D -e'
+# Use RunPod's supported CLI for the basic proxied SSH endpoint. This avoids
+# depending on a public-IP/22 mapping while preserving per-Pod key isolation.
+curl -fsSL https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64 -o "$RUNNER_TEMP/runpodctl"
+chmod +x "$RUNNER_TEMP/runpodctl"
+"$RUNNER_TEMP/runpodctl" config --apiKey "$RUNPOD_API" >/dev/null
 
-jq -n --arg ssh "$SSH_PUB" --arg start "$START_CMD" '{
+jq -n --arg ssh "$SSH_PUB" '{
   name: "rgi-ext-02g1-one-shot",
   cloudType: "SECURE",
   computeType: "GPU",
@@ -26,8 +30,6 @@ jq -n --arg ssh "$SSH_PUB" --arg start "$START_CMD" '{
   gpuTypeIds: ["NVIDIA RTX A4000","NVIDIA GeForce RTX 3070","NVIDIA GeForce RTX 3080","NVIDIA RTX A4500","NVIDIA RTX A5000","NVIDIA L4","NVIDIA GeForce RTX 3090"],
   gpuTypePriority: "custom",
   imageName: "runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04",
-  dockerEntrypoint: ["bash","-lc"],
-  dockerStartCmd: [$start],
   containerDiskInGb: 20,
   volumeInGb: 20,
   volumeMountPath: "/workspace",
@@ -43,25 +45,29 @@ POD_ID="$(jq -r '.id // empty' "$RUNNER_TEMP/pod_created.json")"
 [ -n "$POD_ID" ] || { jq '{id,name,costPerHr,adjustedCostPerHr,gpu,publicIp,portMappings}' "$RUNNER_TEMP/pod_created.json" > evidence/runpod_create_sanitized.json; exit 2; }
 jq '{id,name,costPerHr,adjustedCostPerHr,gpu,publicIp,portMappings,image,machineId,lastStartedAt}' "$RUNNER_TEMP/pod_created.json" > evidence/runpod_create_sanitized.json
 
-PUBLIC_IP=''; SSH_PORT=''
+SSH_TARGET=''
 for attempt in $(seq 1 90); do
-  curl -sS -f -H "Authorization: Bearer ${RUNPOD_API}" "${RUNPOD_API_BASE}/pods/${POD_ID}" > "$RUNNER_TEMP/pod_status.json" || true
-  PUBLIC_IP="$(jq -r '.publicIp // empty' "$RUNNER_TEMP/pod_status.json" 2>/dev/null || true)"
-  SSH_PORT="$(jq -r '.portMappings["22"] // empty' "$RUNNER_TEMP/pod_status.json" 2>/dev/null || true)"
-  if [ -n "$PUBLIC_IP" ] && [ -n "$SSH_PORT" ]; then break; fi
+  "$RUNNER_TEMP/runpodctl" ssh info "$POD_ID" > "$RUNNER_TEMP/ssh_info.json" 2> "$RUNNER_TEMP/ssh_info.err" || true
+  SSH_TARGET="$(jq -r '.sshCommand // empty' "$RUNNER_TEMP/ssh_info.json" 2>/dev/null | grep -oE '[^ ]+@ssh\.runpod\.io' | head -n1 || true)"
+  if [ -n "$SSH_TARGET" ]; then break; fi
   sleep 5
 done
-jq '{id,name,desiredStatus,lastStatusChange,publicIp,portMappings,gpu,machineId}' "$RUNNER_TEMP/pod_status.json" > evidence/runpod_final_status.json || true
-[ -n "$PUBLIC_IP" ] && [ -n "$SSH_PORT" ] || exit 3
-
-SSH_OPTS=(-i "$RUNNER_TEMP/rgi_ext02g1_key" -p "$SSH_PORT" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o IdentitiesOnly=yes)
+if [ -z "$SSH_TARGET" ]; then
+  cp "$RUNNER_TEMP/ssh_info.json" evidence/runpod_ssh_info.json 2>/dev/null || true
+  cp "$RUNNER_TEMP/ssh_info.err" evidence/runpod_ssh_info.err 2>/dev/null || true
+  curl -sS -f -H "Authorization: Bearer ${RUNPOD_API}" "${RUNPOD_API_BASE}/pods/${POD_ID}" > "$RUNNER_TEMP/pod_status.json" || true
+  jq '{id,name,desiredStatus,lastStatusChange,publicIp,portMappings,gpu,machineId}' "$RUNNER_TEMP/pod_status.json" > evidence/runpod_final_status.json || true
+  exit 3
+fi
+printf '%s\n' "$SSH_TARGET" > evidence/runpod_basic_ssh_target.txt
+SSH_OPTS=(-i "$RUNNER_TEMP/rgi_ext02g1_key" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o IdentitiesOnly=yes)
 for attempt in $(seq 1 40); do
-  if ssh "${SSH_OPTS[@]}" "root@${PUBLIC_IP}" 'echo EXT02G1_SSH_READY' > evidence/ssh_probe.txt 2>&1; then break; fi
+  if ssh "${SSH_OPTS[@]}" "$SSH_TARGET" 'echo EXT02G1_SSH_READY' > evidence/ssh_probe.txt 2>&1; then break; fi
   sleep 5
 done
 grep -q EXT02G1_SSH_READY evidence/ssh_probe.txt
 
-ssh "${SSH_OPTS[@]}" "root@${PUBLIC_IP}" "TARGET_BRANCH='${TARGET_BRANCH}' bash -s" <<'REMOTE'
+ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "TARGET_BRANCH='${TARGET_BRANCH}' bash -s" <<'REMOTE'
 set -euo pipefail
 rm -rf /workspace/floq-social /workspace/rgi-ext-02g-native /workspace/.rgi-ext-02g-state
 git clone --depth 1 --branch "$TARGET_BRANCH" https://github.com/kevinbrodzinski/floq-social.git /workspace/floq-social
@@ -85,12 +91,15 @@ print(obj.get('result'))
 PY
 REMOTE
 
-scp "${SSH_OPTS[@]}" "root@${PUBLIC_IP}:/workspace/RGI_EXT_02G1_RUNPOD_ADMISSION_RECEIPT.json" evidence/
-scp "${SSH_OPTS[@]}" "root@${PUBLIC_IP}:/workspace/RGI_EXT_02G1_ORCHESTRATOR_STDOUT.json" evidence/
-scp "${SSH_OPTS[@]}" "root@${PUBLIC_IP}:/workspace/RGI_EXT_02G1_NVIDIA_SMI.txt" evidence/
-scp "${SSH_OPTS[@]}" "root@${PUBLIC_IP}:/workspace/RGI_EXT_02G1_RECEIPT_SHA256.txt" evidence/
-scp "${SSH_OPTS[@]}" "root@${PUBLIC_IP}:/workspace/.rgi-ext-02g-state/last_execution.json" evidence/
-scp "${SSH_OPTS[@]}" "root@${PUBLIC_IP}:/workspace/.rgi-ext-02g-state/last_response.json" evidence/
-scp "${SSH_OPTS[@]}" "root@${PUBLIC_IP}:/workspace/.rgi-ext-02g-state/seal.json" evidence/
-scp "${SSH_OPTS[@]}" "root@${PUBLIC_IP}:/workspace/rgi-ext-02g-native/last_workload.json" evidence/native_last_workload.json
+# Basic RunPod SSH does not support SCP, so stream a tar archive over stdout.
+ssh "${SSH_OPTS[@]}" "$SSH_TARGET" 'tar -C /workspace -czf - RGI_EXT_02G1_RUNPOD_ADMISSION_RECEIPT.json RGI_EXT_02G1_ORCHESTRATOR_STDOUT.json RGI_EXT_02G1_NVIDIA_SMI.txt RGI_EXT_02G1_RECEIPT_SHA256.txt .rgi-ext-02g-state/last_execution.json .rgi-ext-02g-state/last_response.json .rgi-ext-02g-state/seal.json rgi-ext-02g-native/last_workload.json' > "$RUNNER_TEMP/evidence_remote.tar.gz"
+tar -xzf "$RUNNER_TEMP/evidence_remote.tar.gz" -C "$RUNNER_TEMP"
+cp "$RUNNER_TEMP/RGI_EXT_02G1_RUNPOD_ADMISSION_RECEIPT.json" evidence/
+cp "$RUNNER_TEMP/RGI_EXT_02G1_ORCHESTRATOR_STDOUT.json" evidence/
+cp "$RUNNER_TEMP/RGI_EXT_02G1_NVIDIA_SMI.txt" evidence/
+cp "$RUNNER_TEMP/RGI_EXT_02G1_RECEIPT_SHA256.txt" evidence/
+cp "$RUNNER_TEMP/.rgi-ext-02g-state/last_execution.json" evidence/
+cp "$RUNNER_TEMP/.rgi-ext-02g-state/last_response.json" evidence/
+cp "$RUNNER_TEMP/.rgi-ext-02g-state/seal.json" evidence/
+cp "$RUNNER_TEMP/rgi-ext-02g-native/last_workload.json" evidence/native_last_workload.json
 jq -e '.result == "GPU_EXECUTION_CARRIER_ADMITTED" and .theta_estimated == false and .brodzinski_class_assigned == false and .brodzinski_state_certified == false' evidence/RGI_EXT_02G1_RUNPOD_ADMISSION_RECEIPT.json
