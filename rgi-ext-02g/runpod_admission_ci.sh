@@ -16,7 +16,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-jq -n --arg ssh "$SSH_PUB" '{
+START_CMD='set -e; mkdir -p /root/.ssh; chmod 700 /root/.ssh; printf "%s\n" "$SSH_PUBLIC_KEY" > /root/.ssh/authorized_keys; chmod 600 /root/.ssh/authorized_keys; if ! command -v sshd >/dev/null 2>&1; then apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq openssh-server; fi; mkdir -p /run/sshd; exec /usr/sbin/sshd -D -e'
+
+jq -n --arg ssh "$SSH_PUB" --arg start "$START_CMD" '{
   name: "rgi-ext-02g1-one-shot",
   cloudType: "SECURE",
   computeType: "GPU",
@@ -24,6 +26,8 @@ jq -n --arg ssh "$SSH_PUB" '{
   gpuTypeIds: ["NVIDIA RTX A4000","NVIDIA GeForce RTX 3070","NVIDIA GeForce RTX 3080","NVIDIA RTX A4500","NVIDIA RTX A5000","NVIDIA L4","NVIDIA GeForce RTX 3090"],
   gpuTypePriority: "custom",
   imageName: "runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04",
+  dockerEntrypoint: ["bash","-lc"],
+  dockerStartCmd: [$start],
   containerDiskInGb: 20,
   volumeInGb: 20,
   volumeMountPath: "/workspace",
@@ -50,8 +54,8 @@ done
 jq '{id,name,desiredStatus,lastStatusChange,publicIp,portMappings,gpu,machineId}' "$RUNNER_TEMP/pod_status.json" > evidence/runpod_final_status.json || true
 [ -n "$PUBLIC_IP" ] && [ -n "$SSH_PORT" ] || exit 3
 
-SSH_OPTS=(-i "$RUNNER_TEMP/rgi_ext02g1_key" -p "$SSH_PORT" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
-for attempt in $(seq 1 30); do
+SSH_OPTS=(-i "$RUNNER_TEMP/rgi_ext02g1_key" -p "$SSH_PORT" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o IdentitiesOnly=yes)
+for attempt in $(seq 1 40); do
   if ssh "${SSH_OPTS[@]}" "root@${PUBLIC_IP}" 'echo EXT02G1_SSH_READY' > evidence/ssh_probe.txt 2>&1; then break; fi
   sleep 5
 done
