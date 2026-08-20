@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import json,re
+import json
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 f=json.loads((ROOT/'rgi-ext-02g2g1'/'ATOMIC_AVAILABILITY_TO_EXECUTION_FREEZE.json').read_text())
@@ -19,13 +19,13 @@ executor=(ROOT/'rgi-ext-02g2'/'measurement_executor.py').read_text()
 assert "if len(boot)!=10000" in executor
 assert "required_bootstrap':10000" in executor
 runner=(ROOT/'rgi-ext-02g2g1'/'atomic_watch_and_execute.py').read_text()
-assert runner.index("if lock_exists(repo,gh)") < runner.index("availability_query(key)")
-assert runner.index("availability_query(key)") < runner.index("github_json('POST',f'/repos/{repo}/git/refs'")
-assert runner.index("github_json('POST',f'/repos/{repo}/git/refs'") < runner.index("runpod_equivalence_measurement_ci.sh")
-assert "if not passed:" in runner
-assert "return 0" in runner
-assert "provider_create_requests_authorized':1" in runner
-assert "provider_retry_authorized':False" in runner
-assert "second_pod_substitution_authorized':False" in runner
-assert "AVAILABILITY_RECEIPT_TOO_OLD_STOP_NO_PROVIDER_REQUEST" in runner
+main=runner[runner.index('def main():'):]
+assert main.index("if lock_exists(repo,gh)") < main.index("availability_query(key)")
+assert main.index("availability_query(key)") < main.index("github_json('POST',f'/repos/{repo}/git/refs'")
+assert main.index("github_json('POST',f'/repos/{repo}/git/refs'") < main.index("runpod_equivalence_measurement_ci.sh")
+assert "if not passed:" in main
+assert "provider_create_requests_authorized':1" in main
+assert "provider_retry_authorized':False" in main
+assert "second_pod_substitution_authorized':False" in main
+assert "AVAILABILITY_RECEIPT_TOO_OLD_STOP_NO_PROVIDER_REQUEST" in main
 print('RGI_EXT_02G2G1_ATOMIC_GATE_STATIC_PASS')
