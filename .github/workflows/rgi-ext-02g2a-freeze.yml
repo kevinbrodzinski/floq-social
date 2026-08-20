@@ -13,7 +13,7 @@ jobs:
       - name: Verify prospective amendment before any GPU provisioning
         run: |
           python3 rgi-ext-02g2a/verify_amendment.py
-          test "$(grep -R "RUNPOD_API" -n .github/workflows/rgi-ext-02g2a-freeze.yml || true)" = ""
+          ! grep -Fq 'secrets.RUNPOD_API' .github/workflows/rgi-ext-02g2a-freeze.yml
       - name: Freeze hashes
         run: |
           sha256sum \
