@@ -1,0 +1,36 @@
+name: RGI EXT 02G2A ONE SHOT EQUIVALENCE MEASUREMENT
+on:
+  pull_request:
+    types: [opened]
+permissions:
+  contents: read
+jobs:
+  one-shot-equivalence-then-measurement:
+    if: github.event.pull_request.head.ref == 'rgi-ext-02g2a-carrier-equivalence-exec-20260819'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      RUNPOD_API: ${{ secrets.RUNPOD_API }}
+      TARGET_BRANCH: rgi-ext-02g2a-carrier-equivalence-exec-20260819
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify frozen amendment and executor before provisioning
+        run: |
+          test "$(sha256sum rgi-ext-02g2a/CARRIER_EQUIVALENCE_AMENDMENT.json | cut -d' ' -f1)" = "04716f93f260ed3ef8e23201ef21775a25ad2c2cd40949e09a93a99d21472ba0"
+          test "$(jq -r '.freeze_head_sha' rgi-ext-02g2a/FREEZE_MANIFEST_SHA256.json)" = "40e7a5458a5cfcb3997200cd92bca8bc43bb119a"
+          test "$(jq -r '.source_artifact_sha256' rgi-ext-02g2a/FREEZE_MANIFEST_SHA256.json)" = "2034ce168f0f4ffab6337d5d7826768b6f59dd0b1352b2271a1c406687aedfa7"
+          python3 rgi-ext-02g2a/verify_amendment.py
+          python3 -m py_compile rgi-ext-02g2a/equivalence_preflight.py rgi-ext-02g2a/measurement_executor_equiv.py
+      - name: Provision once, certify carrier equivalence, then execute frozen alpha sweep only on pass
+        run: bash rgi-ext-02g2a/runpod_equivalence_measurement_ci.sh
+      - name: Surface frozen terminal state
+        if: always()
+        run: |
+          if [ -f evidence/EQUIVALENCE_CERTIFICATE.json ]; then jq '{state,carrier_class_id,physical_uuid_role,all_checks_passed,certificate_sha256}' evidence/EQUIVALENCE_CERTIFICATE.json; fi
+          if [ -f evidence/TERMINAL_RECEIPT.json ]; then jq '{terminal_state,stage,completed_at_ns,receipt_sha256}' evidence/TERMINAL_RECEIPT.json; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rgi-ext-02g2a-one-shot-equivalence-measurement
+          path: evidence/
+          if-no-files-found: warn
