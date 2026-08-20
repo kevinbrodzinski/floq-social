@@ -44,7 +44,10 @@ jobs:
           PY
 
   runpod-first-discrete-gpu-carrier-admission:
-    if: github.event_name == 'pull_request'
+    # Permanently restrict the live carrier-admission job to the exact EXT-02G.1
+    # evidence branch. Successor measurement-freeze/sweep branches MUST NOT
+    # rerun carrier admission under the admitted GPU identity.
+    if: github.event_name == 'pull_request' && github.head_ref == 'rgi-ext-02g1-runpod-carrier-20260819'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
