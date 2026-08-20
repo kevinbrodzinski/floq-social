@@ -48,11 +48,17 @@
       "status": "PASS",
       "workload": {
         "claim_boundary": "One native carrier workload only; no alpha, beta, Theta, class, contact, or certification computed.",
-        "compute_capability": [8, 6],
+        "compute_capability": [
+          8,
+          6
+        ],
         "compute_checksum": 1048574.625,
         "cuda_event_elapsed_ms": 21.34886360168457,
         "device_name": "NVIDIA RTX A4000",
-        "matmul_shape": [1024, 1024],
+        "matmul_shape": [
+          1024,
+          1024
+        ],
         "memory_touch_checksum": 180,
         "native_capacity_bytes": 16883908608,
         "native_quantum_bytes": 2097152,
@@ -103,11 +109,17 @@
     "execution_receipt_id": "a70e2044273ffe8213bf1a41dc642716464e0c1beb350af239dc2b077735026f",
     "payload": {
       "claim_boundary": "One native carrier workload only; no alpha, beta, Theta, class, contact, or certification computed.",
-      "compute_capability": [8, 6],
+      "compute_capability": [
+        8,
+        6
+      ],
       "compute_checksum": 1048574.625,
       "cuda_event_elapsed_ms": 21.34886360168457,
       "device_name": "NVIDIA RTX A4000",
-      "matmul_shape": [1024, 1024],
+      "matmul_shape": [
+        1024,
+        1024
+      ],
       "memory_touch_checksum": 180,
       "native_capacity_bytes": 16883908608,
       "native_quantum_bytes": 2097152,
