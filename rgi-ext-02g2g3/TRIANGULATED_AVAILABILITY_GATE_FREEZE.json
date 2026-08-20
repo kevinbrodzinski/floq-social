@@ -1,0 +1,113 @@
+{
+  "artifact_type": "RGI_EXT_02G2G3_TRIANGULATED_CARRIER_AVAILABILITY_GATE_FREEZE",
+  "experiment_id": "RGI-EXT-02G.2g.3",
+  "status": "PROSPECTIVELY_FROZEN_BEFORE_SCHEDULE_INSTALLATION_AND_BEFORE_ANY_2G3_EXECUTION_IDENTITY",
+  "purpose": "Replace the overly conservative availableGpuCounts-dependent availability predicate with a prospectively frozen triangulated provider-native predicate while preserving the scientific experiment unchanged.",
+  "parent_atomic_gate": {
+    "experiment_id": "RGI-EXT-02G.2g.1",
+    "pr": 17,
+    "frozen_head_sha": "3caebaac261a8ff7b307ef5e344c215951a3b61d",
+    "installed_main_schedule_commit": "51e927ce6ca959a82584596fa6e21cad01e4ef58",
+    "global_consumption_lock_ref": "refs/heads/rgi-ext-02g2g1-atomic-consumed"
+  },
+  "diagnostic_basis": {
+    "experiment_id": "RGI-EXT-02G.2g.2",
+    "pr": 18,
+    "audit_head_sha": "f2edfb0a1dfd0ea0e4a8ca36c59ebe636aa7319e",
+    "workflow_run_id": 32426599823,
+    "audit_receipt_sha256": "6fd6378108eb1fb8ccc49ac35c7c6b963ccf0dd04e471ce870aed739b760b906",
+    "artifact_id": 9427629358,
+    "observed_exact_gpu": "NVIDIA RTX A4000",
+    "observed_runpodctl_available": true,
+    "observed_runpodctl_secure_cloud": true,
+    "observed_runpodctl_secure_price_per_hr": 0.25,
+    "observed_runpodctl_aggregate_stock_status": "Low",
+    "observed_positive_datacenter": "EUR-IS-1",
+    "observed_graphql_available_gpu_counts": null,
+    "reason_for_amendment": "Provider-native inventory surfaces reported positive exact-A4000 availability while GraphQL availableGpuCounts remained null, making the 2g.1 predicate capable of false-negative rejection."
+  },
+  "frozen_scientific_lineage": {
+    "measurement_admissibility_sha256": "aa7c9954b21e55943ae6683519ea41fc387b03d46cab9b2aa79570222ca643d2",
+    "carrier_equivalence_amendment_sha256": "04716f93f260ed3ef8e23201ef21775a25ad2c2cd40949e09a93a99d21472ba0",
+    "repair_freeze_head_sha": "5127ab6d9304e8be18c39fd5742bcb43710bcbca",
+    "fresh_authorization_head_sha": "4f22b9451a665f6266153a7de9b335018ad6ae3b",
+    "funded_replacement_freeze_head_sha": "0b78085fc6e896f4a45785e26893a616c653c607",
+    "fresh_measurement_identity": "RGI-EXT-02G.2c-FRESH-MEASUREMENT-001",
+    "carrier_equivalence_class_id": "NVIDIA_RTX_A4000_CC86_16GB_NATIVE_2MIB_CUDA118_V1",
+    "alpha_bootstrap_valid_draws_required_exact": 10000
+  },
+  "triangulated_pass_rule": {
+    "gpu_type_id_exact": "NVIDIA RTX A4000",
+    "runpodctl_gpu_available_exact": true,
+    "runpodctl_secure_cloud_exact": true,
+    "runpodctl_secure_price_per_hr_non_null": true,
+    "runpodctl_aggregate_stock_status_allowed": ["Low", "Medium", "High"],
+    "datacenter_requirement": "At least one runpodctl datacenter inventory entry for exact NVIDIA RTX A4000 must report stockStatus in {Low, Medium, High}.",
+    "graphql_available_gpu_counts_role": "RECORDED_DIAGNOSTIC_ONLY_NOT_A_PASS_CRITERION",
+    "graphql_secure_lowest_price_role": "RECORDED_DIAGNOSTIC_ONLY_NOT_A_PASS_CRITERION",
+    "all_required_predicates_must_hold": true,
+    "pass_state": "RGI_EXT_02G2G3_CARRIER_AVAILABLE",
+    "fail_state": "RGI_EXT_02G2G3_CARRIER_UNAVAILABLE_NO_EXECUTION_AUTHORIZATION",
+    "query_error_state": "RGI_EXT_02G2G3_AVAILABILITY_QUERY_ERROR_NO_EXECUTION_AUTHORIZATION"
+  },
+  "freshness_and_identity": {
+    "poll_cadence_minutes": 5,
+    "max_seconds_from_availability_receipt_to_lock_acquisition": 120,
+    "domain_separator": "RGI-EXT-02G.2g.3|TRIANGULATED-EXECUTION-IDENTITY|v1",
+    "identity_preimage_order": [
+      "domain_separator",
+      "availability_receipt_sha256",
+      "triangulated_freeze_commit_sha",
+      "measurement_admissibility_sha256",
+      "carrier_equivalence_amendment_sha256",
+      "repair_freeze_head_sha",
+      "fresh_authorization_head_sha",
+      "fresh_measurement_identity"
+    ],
+    "hash": "SHA256 UTF-8 fields joined by literal vertical-bar separators",
+    "execution_identity_format": "RGI-EXT-02G.2g.3-EXEC-<first24hex_of_identity_sha256>",
+    "execution_identity_may_be_derived_only_after_pass": true
+  },
+  "hard_one_shot_consumption_lock": {
+    "lock_ref": "refs/heads/rgi-ext-02g2g1-atomic-consumed",
+    "role": "GLOBAL_SHARED_LOCK_INHERITED_FROM_2G1_TO_PREVENT_CROSS_LINEAGE_DOUBLE_PROVISIONING",
+    "acquisition": "GitHub create-ref; HTTP 201 is the only successful acquisition",
+    "already_exists_behavior": "STOP_NO_PROVIDER_REQUEST",
+    "other_lock_failure_behavior": "STOP_NO_PROVIDER_REQUEST",
+    "lock_must_be_acquired_before_provider_create_request": true,
+    "provider_create_requests_after_lock": 1,
+    "provider_retry_after_create_failure": false,
+    "second_pod_substitution": false,
+    "parallel_manual_provisioning": false,
+    "later_scheduled_runs_after_lock": "STOP_BEFORE_INVENTORY_QUERY_OR_PROVIDER_REQUEST"
+  },
+  "execution_path": {
+    "provider_create_request_gpu_type_exact": "NVIDIA RTX A4000",
+    "provider_create_request_cloud_type_exact": "SECURE",
+    "provider_create_request_interruptible_exact": false,
+    "provider_create_request_image_exact": "runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04",
+    "carrier_equivalence_must_certify_before_scientific_measurement": true,
+    "pod_cleanup_mandatory_on_terminal_paths_after_pod_creation": true,
+    "reuse_existing_frozen_equivalence_and_measurement_executor": true
+  },
+  "unchanged_contracts": [
+    "carrier-equivalence class",
+    "GPU_DEVICE_MEMORY_FRACTION resource coordinate",
+    "2 MiB native quantum",
+    "15-level alpha p-grid",
+    "fixed FP32 1024x1024 workload mathematics",
+    "seed 260819",
+    "latency degradation response D=L_pressure/L_baseline-1",
+    "2 warmup plus 9 retained blocks",
+    "measurement ordering",
+    "environmental exclusions",
+    "alpha OLS estimator and admissibility gates",
+    "exactly 10000 valid joint retained-block bootstrap draws",
+    "analytic beta profile",
+    "Theta derivation",
+    "class thresholds",
+    "blind holdout definition and gate",
+    "PR10 contamination exclusion"
+  ],
+  "claim_boundary": "This amendment changes only the pre-provisioning availability predicate and execution-channel evidence custody. It changes no scientific measurement, estimator, threshold, workload, ordering, environment rule, carrier-equivalence rule, beta rule, Theta rule, class rule, or blind holdout rule."
+}
