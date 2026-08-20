@@ -1,0 +1,35 @@
+name: RGI EXT 02G2G2 AVAILABILITY SEMANTICS AUDIT
+on:
+  pull_request:
+    types: [opened]
+permissions:
+  contents: read
+jobs:
+  readonly-audit:
+    if: github.event.pull_request.head.ref == 'rgi-ext-02g2g2-availability-semantics-audit-20260820'
+    runs-on: ubuntu-24.04
+    env:
+      RUNPOD_API: ${{ secrets.RUNPOD_API }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install runpodctl only
+        run: |
+          curl -fsSL https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64 -o "$RUNNER_TEMP/runpodctl"
+          chmod +x "$RUNNER_TEMP/runpodctl"
+          echo "RUNPODCTL=$RUNNER_TEMP/runpodctl" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.runpod"; touch "$HOME/.runpod/.runpod.yaml"
+          "$RUNNER_TEMP/runpodctl" config --apiKey "$RUNPOD_API" >/dev/null
+      - name: Verify audit is read-only
+        run: |
+          test ! -e evidence
+          ! grep -R -nE 'POST.*/pods|/v1/pods|pod create|create pod' rgi-ext-02g2g2 .github/workflows/rgi-ext-02g2g2-availability-semantics-audit.yml
+          python3 -m py_compile rgi-ext-02g2g2/availability_semantics_audit.py
+      - name: Run read-only multi-surface audit
+        run: python3 rgi-ext-02g2g2/availability_semantics_audit.py
+      - name: Surface audit
+        run: jq '{graphql_secure,graphql_secure_false,runpodctl_gpu_a4000,runpodctl_datacenter_a4000,provider_create_request_sent,pod_created,scientific_measurement_started,receipt_sha256}' evidence/AVAILABILITY_SEMANTICS_AUDIT.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rgi-ext-02g2g2-availability-semantics-audit
+          path: evidence/
+          if-no-files-found: error
