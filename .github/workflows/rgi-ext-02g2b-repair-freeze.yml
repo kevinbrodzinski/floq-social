@@ -1,0 +1,17 @@
+name: RGI EXT 02G2B INSTRUMENTATION REPAIR FREEZE
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+jobs:
+  static-repair-freeze:
+    if: github.event.pull_request.head.ref == 'rgi-ext-02g2b-instrumentation-repair-freeze-20260819'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify repair freeze and schema contract without GPU or provider credentials
+        run: |
+          python3 rgi-ext-02g2b/schema_contract_test.py
+          python3 rgi-ext-02g2b/verify_repair_freeze.py
+          python3 -m py_compile rgi-ext-02g2/gpu_measurement_point.py rgi-ext-02g2b/schema_contract_test.py rgi-ext-02g2b/verify_repair_freeze.py

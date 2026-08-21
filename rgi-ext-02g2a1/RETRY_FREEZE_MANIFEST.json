@@ -1,0 +1,13 @@
+{
+  "artifact_type": "RGI_EXT_02G2A1_RETRY_FREEZE_MANIFEST",
+  "freeze_head_sha": "04a44bcd9e405e6c355fa880c985310608744f49",
+  "workflow_run_id": 32332031870,
+  "artifact_id": 9393345525,
+  "artifact_sha256": "0801b3271b326bf425447bfd5b7859738951ea6d37df53c20929360791be1d44",
+  "files": {
+    "PREOBSERVATION_TRANSPORT_RETRY_FREEZE.json": "6eca4b02cef12367fa1b60e80b3d4e28dac8ac0745f4d3a7a645654c6e5b2489",
+    "verify_retry_freeze.py": "687326c71e4ca92d082e519937940c2456692eace5e2fa711c673e3a9ddddcc6"
+  },
+  "replacement_create_requests_authorized": 1,
+  "replacement_create_request_sent": false
+}
