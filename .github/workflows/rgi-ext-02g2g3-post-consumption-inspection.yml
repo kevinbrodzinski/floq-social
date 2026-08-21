@@ -1,0 +1,27 @@
+name: RGI EXT 02G2G3 POST CONSUMPTION INSPECTION
+on:
+  pull_request:
+    types: [opened, synchronize]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    if: github.event.pull_request.head.ref == 'rgi-ext-02g2g3-post-consumption-inspection-20260820'
+    runs-on: ubuntu-24.04
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify inspection cannot provision
+        run: |
+          test -z "${RUNPOD_API:-}"
+          python3 -m py_compile rgi-ext-02g2g3-inspect/inspect_schedule_and_evidence.py
+          ! grep -R -nE 'api.runpod.io|rest.runpod.io|POST.*/pods|/v1/pods|runpodctl pod create' rgi-ext-02g2g3-inspect
+      - name: Inspect workflow state, scheduled runs, lock, and evidence
+        run: python3 rgi-ext-02g2g3-inspect/inspect_schedule_and_evidence.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rgi-ext-02g2g3-post-consumption-inspection
+          path: inspection/
+          if-no-files-found: error
