@@ -1,0 +1,92 @@
+{
+  "artifact_type": "RGI_EXT_02G2C_FRESH_MEASUREMENT_EXECUTION_AUTHORIZATION",
+  "experiment_id": "RGI-EXT-02G.2c",
+  "fresh_measurement_identity": "RGI-EXT-02G.2c-FRESH-MEASUREMENT-001",
+  "status": "PROSPECTIVELY_FROZEN_PENDING_FINAL_SOURCE_CONFIG_PREFLIGHT",
+  "purpose": "Authorize a completely fresh successor measurement identity only after one final source/config preflight, without changing any scientific or carrier-equivalence rule.",
+  "parent_repair_freeze": {
+    "pr": 11,
+    "head_sha": "5127ab6d9304e8be18c39fd5742bcb43710bcbca",
+    "static_workflow_run_id": 32333616873,
+    "static_workflow_job_id": 96318803843,
+    "static_workflow_conclusion": "success",
+    "required_pass_markers_observed": ["RGI_EXT_02G2B_SCHEMA_CONTRACT_PASS", "RGI_EXT_02G2B_REPAIR_FREEZE_PASS"],
+    "cryptographic_bindings": {
+      "repair_freeze_git_blob_sha1": "b9521f4acd9e0c9ead6c1425375efc153e6bdbf8",
+      "schema_contract_test_git_blob_sha1": "4cf372482b097eaff98904545ed190f719ed1977",
+      "repair_verifier_git_blob_sha1": "8e4dccc76e2cd3891d20f1dcaa231494fd824aca",
+      "repaired_point_worker_git_blob_sha1": "b0d201e992438dfb7ca8857b9a101b30d088843c",
+      "repair_freeze_workflow_git_blob_sha1": "a33cb8df6a5724731de6754c37e33fc11314c8bc"
+    }
+  },
+  "frozen_scientific_lineage": {
+    "measurement_admissibility_sha256": "aa7c9954b21e55943ae6683519ea41fc387b03d46cab9b2aa79570222ca643d2",
+    "carrier_equivalence_amendment_sha256": "04716f93f260ed3ef8e23201ef21775a25ad2c2cd40949e09a93a99d21472ba0",
+    "carrier_equivalence_class_id": "NVIDIA_RTX_A4000_CC86_16GB_NATIVE_2MIB_CUDA118_V1",
+    "scientific_contract": "UNCHANGED_EXCEPT_ALREADY_FROZEN_02G2B_SNAPSHOT_SCHEMA_REPAIR"
+  },
+  "zero_observation_custody": {
+    "successor_observation_count_at_authorization_freeze": 0,
+    "successor_alpha_grid_points_collected": 0,
+    "successor_warmup_points_collected": 0,
+    "successor_retained_points_collected": 0,
+    "successor_alpha_estimated": false,
+    "successor_beta_applied": false,
+    "successor_theta_computed": false,
+    "successor_class_assigned": false,
+    "successor_blind_holdout_collected": false,
+    "successor_boundary_contact_H_seen": false,
+    "successor_boundary_contact_K_seen": false,
+    "successor_dataset_must_begin_empty": true
+  },
+  "pr10_contamination_exclusion": {
+    "source_pr": 10,
+    "source_workflow_run_id": 32332102088,
+    "source_identity": "PR10_RUN_32332102088_WARMUP_BLOCK_1_LEVEL_8",
+    "requested_p": 0.0625,
+    "realized_p": 0.062477680997407116,
+    "observed_D": 0.0799010664599169,
+    "classification": "NON_REUSABLE_FAILURE_DIAGNOSTIC_CONTAMINATION_EVIDENCE",
+    "may_enter_successor_dataset": false,
+    "may_enter_alpha_fit": false,
+    "may_enter_bootstrap": false,
+    "may_influence_parameter_selection": false,
+    "may_influence_ordering": false,
+    "may_influence_thresholds": false,
+    "may_be_replayed_as_successor_measurement": false
+  },
+  "unchanged_contracts": [
+    "carrier-equivalence class",
+    "resource coordinate GPU_DEVICE_MEMORY_FRACTION",
+    "native 2 MiB quantum requirement",
+    "15-level alpha p-grid",
+    "fixed FP32 1024x1024 workload mathematics",
+    "seed 260819",
+    "latency-degradation response definition D=L_pressure/L_baseline-1",
+    "2 warmup plus 9 retained block repetition rule",
+    "measurement ordering",
+    "environmental thresholds and exclusion criteria",
+    "alpha estimator and gates",
+    "analytic beta profile",
+    "Theta derivation",
+    "class thresholds",
+    "blind holdout definition and gating"
+  ],
+  "execution_boundary": {
+    "gpu_provisioning_authorized_now": false,
+    "scientific_measurement_authorized_now": false,
+    "required_next_gate": "RGI_EXT_02G2C_FINAL_SOURCE_CONFIG_PREFLIGHT_PASS",
+    "final_preflight_must_be_no_gpu": true,
+    "final_preflight_must_not_send_provider_create_request": true,
+    "final_preflight_must_not_collect_scientific_response": true,
+    "after_required_next_gate_only": {
+      "fresh_gpu_provisioning_requests_authorized": 1,
+      "fresh_carrier_equivalence_preflight_required": true,
+      "scientific_sweep_authorized_only_after_equivalence_certification": true,
+      "no_pr10_pod_or_measurement_reuse": true,
+      "no_outcome_dependent_retry_or_retuning": true,
+      "blind_holdout_remains_closed_until_existing_frozen_gate_allows_it": true
+    }
+  },
+  "claim_boundary": "This authorization freeze adds no scientific evidence. It creates a fresh, zero-observation execution identity and binds it to the passed RGI-EXT-02G.2b repair freeze. No GPU provisioning or scientific measurement is authorized until the separate final source/config preflight passes."
+}
