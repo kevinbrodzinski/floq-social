@@ -1,0 +1,62 @@
+{
+  "artifact_type": "RGI_EXT_02G2A1_PREOBSERVATION_TRANSPORT_RETRY_FREEZE",
+  "experiment_id": "RGI-EXT-02G.2a.1",
+  "status": "PROSPECTIVELY_FROZEN_BEFORE_REPLACEMENT_CREATE_REQUEST",
+  "scope": "Execution-channel transport only; no carrier-equivalence or scientific rule changes.",
+  "parent_execution": {
+    "pr": 8,
+    "execution_head_sha": "8fc60e72df32ae1b30582d9560f31102bc0b9267",
+    "workflow_run_id": 32330871357,
+    "provider_operation": "POST /pods",
+    "provider_result": "HTTP_500",
+    "pod_id_issued": false,
+    "gpu_provisioned": false,
+    "gpu_identity_observed": false,
+    "carrier_equivalence_preflight_started": false,
+    "scientific_measurement_started": false,
+    "classification": "PRE_OBSERVATION_PROVIDER_CREATE_FAILURE"
+  },
+  "frozen_parent_contracts": {
+    "measurement_admissibility_sha256": "aa7c9954b21e55943ae6683519ea41fc387b03d46cab9b2aa79570222ca643d2",
+    "carrier_equivalence_amendment_sha256": "04716f93f260ed3ef8e23201ef21775a25ad2c2cd40949e09a93a99d21472ba0",
+    "carrier_equivalence_freeze_head_sha": "40e7a5458a5cfcb3997200cd92bca8bc43bb119a",
+    "carrier_equivalence_freeze_artifact_sha256": "2034ce168f0f4ffab6337d5d7826768b6f59dd0b1352b2271a1c406687aedfa7",
+    "execution_source_head_sha": "8fc60e72df32ae1b30582d9560f31102bc0b9267"
+  },
+  "retry_admissibility": {
+    "replacement_create_requests_authorized": 1,
+    "admissible_pre_observation_failure": {
+      "http_status_family": "5xx",
+      "pod_id_must_be_absent": true,
+      "gpu_hardware_observation_must_be_absent": true,
+      "carrier_equivalence_certificate_must_be_absent": true,
+      "scientific_measurement_must_be_absent": true
+    },
+    "interpretation": "A provider 5xx returned before any Pod ID or hardware observation is an execution-channel failure, not a carrier-equivalence preflight and not a scientific trial. Exactly one replacement create request is prospectively authorized.",
+    "replacement_request_payload": "BYTE_SEMANTICALLY_UNCHANGED_FROM_PR8_RUN_32330871357",
+    "carrier_equivalence_contract": "UNCHANGED",
+    "scientific_measurement_contract": "UNCHANGED",
+    "no_parameter_retuning": true,
+    "no_gpu_type_substitution": true,
+    "no_response_dependent_change": true
+  },
+  "consumption_rule": {
+    "retry_budget_consumed_when": "The replacement POST /pods request returns any response other than a provider 5xx with no Pod ID, or a Pod ID is issued, whichever occurs first.",
+    "if_replacement_create_returns_5xx_before_pod_id": "PRE_OBSERVATION_PROVIDER_CREATE_FAILURE_STOP_NO_FURTHER_RETRY",
+    "if_pod_id_is_issued": "Proceed to exactly one frozen carrier-equivalence preflight on that Pod; no second Pod substitution is permitted under this identity.",
+    "if_equivalence_refuses": "GPU_CARRIER_EQUIVALENCE_REFUSED_STOP_NO_MEASUREMENT",
+    "if_equivalence_certifies": "Proceed directly to the unchanged frozen 15-level alpha sweep and stop at its first registered terminal state before blind holdout."
+  },
+  "claim_boundary": "This retry freeze does not add scientific evidence and does not relax carrier equivalence. It only prospectively distinguishes a provider-side pre-observation 5xx from an executed GPU preflight.",
+  "custody": {
+    "replacement_create_request_sent": false,
+    "replacement_pod_id_issued": false,
+    "gpu_observed": false,
+    "carrier_equivalence_observed": false,
+    "scientific_measurement_started": false,
+    "alpha_measured": false,
+    "theta_estimated": false,
+    "class_assigned": false,
+    "blind_holdout_collected": false
+  }
+}
