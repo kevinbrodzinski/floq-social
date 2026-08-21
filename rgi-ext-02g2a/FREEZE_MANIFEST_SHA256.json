@@ -1,0 +1,15 @@
+{
+  "artifact_type": "RGI_EXT_02G2A_FREEZE_MANIFEST",
+  "status": "FROZEN_BEFORE_NEW_GPU_PROVISIONING",
+  "freeze_head_sha": "40e7a5458a5cfcb3997200cd92bca8bc43bb119a",
+  "source_workflow_run_id": 32330759393,
+  "source_artifact_id": 9392928323,
+  "source_artifact_sha256": "2034ce168f0f4ffab6337d5d7826768b6f59dd0b1352b2271a1c406687aedfa7",
+  "files": {
+    "CARRIER_EQUIVALENCE_AMENDMENT.json": "04716f93f260ed3ef8e23201ef21775a25ad2c2cd40949e09a93a99d21472ba0",
+    "CARRIER_EQUIVALENCE_AMENDMENT.md": "e8b8197ade0844e4a02988aeb48265bf02635cfb539f887908a3746bb5a0284e",
+    "verify_amendment.py": "2ee7bf26ece75fb723ab3a462f8ca86956127decc7fa192dfff26b7780fb0614"
+  },
+  "new_gpu_provisioned_before_freeze": false,
+  "scientific_measurement_before_freeze": false
+}

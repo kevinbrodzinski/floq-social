@@ -1,0 +1,89 @@
+{
+  "artifact_type": "RGI_EXT_02G2B_MEASUREMENT_INSTRUMENTATION_REPAIR_FREEZE",
+  "experiment_id": "RGI-EXT-02G.2b",
+  "status": "PROSPECTIVELY_FROZEN_BEFORE_ANY_NEW_GPU_PROVISIONING",
+  "scope": "Instrumentation-schema repair only. No scientific design change and no execution authorization in this freeze.",
+  "parent_terminal_execution": {
+    "pr": 10,
+    "workflow_run_id": 32332102088,
+    "head_sha": "fe8564c91b8825509649d3ed145defcdc08436d8",
+    "carrier_equivalence_state": "CARRIER_EQUIVALENCE_CERTIFIED",
+    "carrier_equivalence_certificate_sha256": "bb8299fd4656a1f5bfac69e894579f77054a9628b105173ab6c0abf59a1ee6c2",
+    "evidence_artifact_id": 9393402326,
+    "evidence_artifact_sha256": "897d94d13db108c643dd34556aa0fd6e3ad51ba4ba532cf579f55c8392c34c04",
+    "scientific_boundary_crossed": true,
+    "terminal_failure": "POINT_POST_ENVIRONMENT_SCHEMA_KEYERROR",
+    "failure_detail": "pressure snapshot payload omitted thermal_or_hw_slowdown_active while the frozen validator required it",
+    "pod_deleted_http_status": 204
+  },
+  "contamination_custody": {
+    "non_reusable": true,
+    "source_identity": "PR10_RUN_32332102088_WARMUP_BLOCK_1_LEVEL_8",
+    "requested_p": 0.0625,
+    "realized_p": 0.062477680997407116,
+    "observed_D": 0.0799010664599169,
+    "role": "FAILURE_DIAGNOSTIC_ONLY",
+    "must_not_enter_successor_dataset": true,
+    "must_not_enter_alpha_fit": true,
+    "must_not_enter_bootstrap": true,
+    "must_not_be_used_for_parameter_selection": true,
+    "must_not_be_used_for_ordering_or_threshold_changes": true,
+    "successor_measurement_requires_fresh_identity_and_fresh_complete_dataset": true
+  },
+  "frozen_parent_contracts": {
+    "measurement_admissibility_sha256": "aa7c9954b21e55943ae6683519ea41fc387b03d46cab9b2aa79570222ca643d2",
+    "carrier_equivalence_amendment_sha256": "04716f93f260ed3ef8e23201ef21775a25ad2c2cd40949e09a93a99d21472ba0",
+    "carrier_equivalence_class_id": "NVIDIA_RTX_A4000_CC86_16GB_NATIVE_2MIB_CUDA118_V1"
+  },
+  "unchanged_scientific_contract": [
+    "carrier-equivalence class",
+    "resource coordinate GPU_DEVICE_MEMORY_FRACTION",
+    "native 2 MiB quantum requirement",
+    "15-level alpha p-grid",
+    "fixed FP32 1024x1024 workload mathematics",
+    "seed 260819",
+    "latency-degradation response definition D=L_pressure/L_baseline-1",
+    "2 warmup plus 9 retained block repetition rule",
+    "measurement ordering",
+    "environmental thresholds and exclusion criteria",
+    "alpha estimator and gates",
+    "analytic beta profile",
+    "Theta derivation",
+    "class thresholds",
+    "blind holdout definition and gating"
+  ],
+  "authorized_repair": {
+    "worker_path": "rgi-ext-02g2/gpu_measurement_point.py",
+    "worker_git_blob_sha_after_repair": "b0d201e992438dfb7ca8857b9a101b30d088843c",
+    "changes": [
+      "query nvidia-smi PERFORMANCE state for SW Thermal Slowdown and HW Thermal Slowdown at each worker snapshot",
+      "emit boolean thermal_or_hw_slowdown_active in every worker snapshot",
+      "emit slowdown_evidence lines in every worker snapshot"
+    ],
+    "semantic_rule": "thermal_or_hw_slowdown_active is true iff any captured SW Thermal Slowdown or HW Thermal Slowdown status is exactly Active; otherwise false",
+    "no_change_to_environment_gate": true,
+    "no_change_to_executor_thresholds": true
+  },
+  "static_schema_contract": {
+    "test_path": "rgi-ext-02g2b/schema_contract_test.py",
+    "must_run_without_gpu": true,
+    "must_run_without_provider_credentials": true,
+    "requirements": [
+      "executor still requires pressure_pre_snapshot.thermal_or_hw_slowdown_active",
+      "executor still requires pressure_post_snapshot.thermal_or_hw_slowdown_active",
+      "worker smi_snapshot emits thermal_or_hw_slowdown_active as bool",
+      "worker smi_snapshot emits slowdown_evidence as list",
+      "inactive synthetic nvidia-smi performance state maps to false",
+      "active synthetic nvidia-smi performance state maps to true"
+    ],
+    "required_pass_marker": "RGI_EXT_02G2B_SCHEMA_CONTRACT_PASS"
+  },
+  "authorization_boundary": {
+    "new_gpu_provisioning_authorized_by_this_freeze": false,
+    "scientific_measurement_authorized_by_this_freeze": false,
+    "next_lawful_step_after_static_freeze_pass": "Create a separately identified fresh-measurement execution authorization that binds this repair freeze and starts from zero successor observations.",
+    "no_rerun_of_pr10": true,
+    "no_reuse_of_pr10_pod_or_measurement": true
+  },
+  "claim_boundary": "RGI-EXT-02G.2b proves only implementation conformance of the measurement snapshot schema to the already-frozen environmental validator. It adds no alpha, beta, Theta, class, holdout, H, K, contact-law, or universality evidence."
+}

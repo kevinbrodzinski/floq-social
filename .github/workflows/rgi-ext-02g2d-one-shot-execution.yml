@@ -1,0 +1,37 @@
+name: RGI EXT 02G2D FRESH MEASUREMENT ONE SHOT EXECUTION
+on:
+  pull_request:
+    types: [opened]
+permissions:
+  contents: read
+jobs:
+  one-shot-fresh-measurement:
+    if: github.event.pull_request.head.ref == 'rgi-ext-02g2d-fresh-measurement-execution-001-20260819'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      RUNPOD_API: ${{ secrets.RUNPOD_API }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify frozen authorization and execution identity before provisioning
+        run: |
+          test ! -e evidence
+          python3 rgi-ext-02g2b/schema_contract_test.py
+          python3 rgi-ext-02g2b/verify_repair_freeze.py
+          python3 rgi-ext-02g2c/verify_fresh_measurement_authorization.py
+          python3 rgi-ext-02g2d/verify_execution_identity.py
+          python3 -m py_compile rgi-ext-02g2/gpu_measurement_point.py rgi-ext-02g2a/measurement_executor_equiv.py rgi-ext-02g2d/verify_execution_identity.py
+      - name: Execute exactly one fresh provisioning attempt under frozen science
+        run: bash rgi-ext-02g2d/run_fresh_measurement_001.sh
+      - name: Surface terminal evidence
+        if: always()
+        run: |
+          if [ -f evidence/EQUIVALENCE_CERTIFICATE.json ]; then jq '{state,carrier_class_id,all_checks_passed,certificate_sha256}' evidence/EQUIVALENCE_CERTIFICATE.json; fi
+          if [ -f evidence/PREDICTION_SEAL.json ]; then jq '{alpha:.alpha.alpha_hat,beta_hat,theta_hat,theta_ci95,class,measurement_points_executed,seal_sha256}' evidence/PREDICTION_SEAL.json; fi
+          if [ -f evidence/TERMINAL_RECEIPT.json ]; then jq '{terminal_state,stage,completed_at_ns,receipt_sha256}' evidence/TERMINAL_RECEIPT.json; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rgi-ext-02g2d-fresh-measurement-001-evidence
+          path: evidence/
+          if-no-files-found: warn
