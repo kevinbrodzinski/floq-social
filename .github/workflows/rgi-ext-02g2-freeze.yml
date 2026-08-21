@@ -1,0 +1,39 @@
+name: RGI EXT 02G2 MEASUREMENT FREEZE
+
+on:
+  push:
+    branches:
+      - rgi-ext-02g2-native-gpu-measurement-freeze-20260819
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'rgi-ext-02g2/**'
+      - '.github/workflows/rgi-ext-02g2-freeze.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-prospective-freeze:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact carrier parent and no-science measurement freeze
+        run: python3 rgi-ext-02g2/verify_freeze.py
+      - name: Prove live RunPod credential is not consumed by this freeze workflow
+        run: |
+          test -z "${RUNPOD_API:-}"
+          echo 'RGI-EXT-02G.2 STATIC FREEZE ONLY: NO RUNPOD SECRET, NO GPU MEASUREMENT'
+      - name: Record freeze hashes
+        run: |
+          sha256sum \
+            rgi-ext-02g2/EXT02G1_SUCCESSFUL_CARRIER_RECEIPT.json \
+            rgi-ext-02g2/MEASUREMENT_ADMISSIBILITY_FREEZE.json \
+            rgi-ext-02g2/MEASUREMENT_ADMISSIBILITY_FREEZE.md \
+            rgi-ext-02g2/verify_freeze.py \
+            | tee RGI_EXT_02G2_FREEZE_SHA256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rgi-ext-02g2-prospective-freeze-hashes
+          path: RGI_EXT_02G2_FREEZE_SHA256.txt
