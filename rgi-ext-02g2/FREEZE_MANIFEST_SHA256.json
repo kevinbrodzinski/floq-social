@@ -1,0 +1,15 @@
+{
+  "artifact_type": "RGI_EXT_02G2_FREEZE_MANIFEST",
+  "status": "FROZEN_STOP_BEFORE_SCIENTIFIC_GPU_MEASUREMENT",
+  "source_workflow_run_id": 32327245975,
+  "source_hash_artifact_id": 9391785476,
+  "source_hash_artifact_sha256": "9e39837b262138b24b7c673f5e154850e7ff4c9df260acd32185c5580efbf750",
+  "files": {
+    "EXT02G1_SUCCESSFUL_CARRIER_RECEIPT.json": "813b24ff0f6fe2d84df30110c2b5be8a36e3ee333c9ca0ad98a0aa458c4e5a9a",
+    "MEASUREMENT_ADMISSIBILITY_FREEZE.json": "aa7c9954b21e55943ae6683519ea41fc387b03d46cab9b2aa79570222ca643d2",
+    "MEASUREMENT_ADMISSIBILITY_FREEZE.md": "eedc9608f0d81f69024b0cf3a0645b2e8348a02f49961ce2ca5f431c6a81f2a8",
+    "verify_freeze.py": "aa5a228789d13b19d3ee31caf0075aed57a20f097142fd2dad7227df5997fecb"
+  },
+  "scientific_sweep_executed": false,
+  "runpod_secret_consumed_by_freeze_workflow": false
+}
